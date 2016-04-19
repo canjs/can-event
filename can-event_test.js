@@ -131,7 +131,7 @@ test('delegate on document', function () {
 		handler = function () {
 			called = true;
 		};
-	canEvent.delegate.call(document, 'body', 'click', handler);
+	canEvent.delegate.call(document, 'click', 'body', handler);
 	canEvent.trigger.call(document.body, 'click');
 	ok(called, 'got click event');
 	ok(true, 'did not error');
