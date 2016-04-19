@@ -216,7 +216,8 @@ var canEvent = {
     trigger: function(){
         var listenWithDOM = domEvents.canAddEventListener.call(this);
         var dispatch = listenWithDOM ? domDispatch : canEvent.dispatch;
-        return dispatch.apply(this, arguments)
+
+        return dispatch.apply(this, arguments);
     },
 
     // ## can.event.one
