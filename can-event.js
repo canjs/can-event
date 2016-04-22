@@ -168,14 +168,12 @@ var canEvent = {
      * This syntax can be used for objects that don't include the `can.event` mixin.
      */
     on: function(eventName, selector, handler) {
-        var listenWithDOM = domEvents.canAddEventListener.call(this);
-        var eventBinder = listenWithDOM ? domEvents : canEvent;
+        var method = typeof selector === "string" ? "addDelegateListener" : "addEventListener";
 
-        if(typeof selector === "string") {
-            return eventBinder.addDelegateListener.apply(this, arguments);
-        } else {
-            return eventBinder.addEventListener.apply(this, arguments);
-        }
+        var listenWithDOM = domEvents.canAddEventListener.call(this);
+        var eventBinder = listenWithDOM ? domEvents[method] : this[method] || canEvent[method];
+
+        return eventBinder.apply(this, arguments);
     },
 
     /**
@@ -192,14 +190,12 @@ var canEvent = {
      * This syntax can be used for objects that don't include the `can.event` mixin.
      */
     off: function(eventName, selector, handler) {
-        var listenWithDOM = domEvents.canAddEventListener.call(this);
-        var eventBinder = listenWithDOM ? domEvents : canEvent;
+        var method = typeof selector === "string" ? "removeDelegateListener" : "removeEventListener";
 
-        if(typeof selector === "string") {
-            return eventBinder.removeDelegateListener.apply(this, arguments);
-        } else {
-            return eventBinder.removeEventListener.apply(this, arguments);
-        }
+        var listenWithDOM = domEvents.canAddEventListener.call(this);
+        var eventBinder = listenWithDOM ? domEvents[method] : this[method] || canEvent[method];
+
+        return eventBinder.apply(this, arguments);
     },
     /**
      * @function can.event.trigger
@@ -297,7 +293,7 @@ var canEvent = {
 
     	// Add the event, both locally and to the other object
     	eventsEvents.push(handler);
-    	canEvent.addEventListener.call(other, event, handler);
+    	canEvent.on.call(other, event, handler);
     },
     // ## can.event.stopListening
     //
@@ -353,7 +349,7 @@ var canEvent = {
     			i = 0;
     			while (i < handlers.length) {
     				if (handler && handler === handlers[i] || !handler) {
-    					canEvent.removeEventListener.call(other, eventName, handlers[i]);
+    					canEvent.off.call(other, eventName, handlers[i]);
     					handlers.splice(i, 1);
     				} else {
     					i++;
