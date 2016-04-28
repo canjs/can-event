@@ -10,10 +10,12 @@
 // var SomeClass = can.Construct("SomeClass");
 // can.extend(SomeClass.prototype, can.event);
 // ```
-var domEvents = require('can-util/dom/events/');
+var domEvents = require('can-util/dom/events/events');
 var CID = require('can-util/js/cid/');
 var isEmptyObject = require('can-util/js/is-empty-object/');
 var domDispatch = require("can-util/dom/dispatch/");
+
+require('can-util/dom/events/delegate/delegate');
 
 // ## can.event
 // Create and export the `can.event` mixin
