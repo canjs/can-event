@@ -1,5 +1,6 @@
 var canEvent = require('can-event');
 var last = require('can-util/js/last/');
+var namespace = require('can-util/namespace');
 
 // Which batch of events this is for -- might not want to send multiple
 // messages on the same batch.  This is mostly for event delegation.
@@ -296,4 +297,4 @@ var canBatch = {
 	}
 };
 
-module.exports = canBatch;
+module.exports = namespace.batch = canBatch;
