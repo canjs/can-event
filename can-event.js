@@ -13,8 +13,8 @@
 var domEvents = require('can-util/dom/events/events');
 var CID = require('can-util/js/cid/');
 var isEmptyObject = require('can-util/js/is-empty-object/');
-var domDispatch = require("can-util/dom/dispatch/");
-
+var domDispatch = require('can-util/dom/dispatch/');
+var namespace = require('can-util/namespace');
 require('can-util/dom/events/delegate/delegate');
 
 // ## can.event
@@ -446,4 +446,4 @@ canEvent.delegate = canEvent.on;
  */
 canEvent.undelegate = canEvent.off;
 
-module.exports = canEvent;
+module.exports = namespace.event = canEvent;
