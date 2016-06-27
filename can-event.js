@@ -1,4 +1,4 @@
-// # can/event
+// # can-event
 //
 // Implements a basic event system that can be used with any type of object.
 // In addition to adding basic event functionality, it also provides the `can.event` object
@@ -7,8 +7,8 @@
 // Most of the time when this is used, it will be used with the mixin:
 //
 // ```
-// var SomeClass = can.Construct("SomeClass");
-// can.extend(SomeClass.prototype, can.event);
+// var SomeClass = Construct("SomeClass");
+// assign(SomeClass.prototype, canEvent);
 // ```
 var domEvents = require('can-util/dom/events/events');
 var CID = require('can-util/js/cid/');
@@ -22,25 +22,34 @@ require('can-util/dom/events/delegate/delegate');
 var canEvent = {
     // First define core object-based methods
 
-    // ## can.event.addEvent
+    // ## can-event.addEventListener
     //
     // Adds a basic event listener to an object.
     // This consists of storing a cache of event listeners on each object,
     // that are iterated through later when events are dispatched.
     /**
-     * @function can.event.addEvent
-     * @parent can.event.static
-     * @signature `obj.addEvent( event, handler )`
+     * @function can-event.addEventListener addEventListener
+     * @parent can-event.static
+     * @signature `obj.addEventListener(event, handler)`
      *
      * Add a basic event listener to an object.
+		 *
+		 * ```js
+		 * var canEvent = require("can-event");
+		 *
+		 * var obj = {};
+		 * Object.assign(obj, canEvent);
+		 *
+		 * obj.addEventListener("foo", function(){ ... });
+		 * ```
      *
      * @param {String} event The name of the event to listen for.
      * @param {Function} handler The handler that will be executed to handle the event.
      * @return {Object} this
      *
-     * @signature `can.event.addEvent.call( obj, event, handler )`
+     * @signature `canEvent.addEventListener.call(obj, event, handler)`
      *
-     * This syntax can be used for objects that don't include the `can.event` mixin.
+     * This syntax can be used for objects that don't include the `canEvent` mixin.
      */
     addEventListener: function (event, handler) {
     	// Initialize event cache.
@@ -55,27 +64,27 @@ var canEvent = {
     	return this;
     },
 
-    // ## can.event.removeEvent
+    // ## can-event.removeEventListener
     //
     // Removes a basic event listener from an object.
     // This removes event handlers from the cache of listened events.
     /**
-     * @function can.event.removeEvent
-     * @parent can.event.static
-     * @signature `obj.removeEvent( event, handler )`
+     * @function can-event.removeEventListener removeEventListener
+     * @parent can-event.static
+     * @signature `obj.removeEventListener(event, handler)`
      *
      * Removes a basic event listener from an object.
      *
      * @param {String} event The name of the event to listen for.
      * @param {Function} handler The handler that will be executed to handle the event.
-     * @param {Function} [__validate] An extra function that can validate an event handler
-     *                                as a match. This is an internal parameter and only used
-     *                                for `can/event` plugins.
+     * @param {Function} [__validate] An extra function that can validate an
+		 * event handler as a match. This is an internal parameter and only used
+     * for can-event plugins.
      * @return {Object} this
      *
-     * @signature `can.event.removeEvent.call( obj, event, handler )`
+     * @signature `canEvent.removeEventListener.call(obj, event, handler)`
      *
-     * This syntax can be used for objects that don't include the `can.event` mixin.
+     * This syntax can be used for objects that don't include the [can-event] mixin.
      */
     removeEventListener: function (event, fn, __validate) {
     	if (!this.__bindEvents) {
@@ -97,21 +106,34 @@ var canEvent = {
     	}
     	return this;
     },
-    // ## can.event.dispatch
+    // ## can-event.dispatch
     //
     // Dispatches/triggers a basic event on an object.
     /**
-     * @function can.event.dispatch
-     * @parent can.event.static
-     * @signature `obj.dispatch( event, args )`
+     * @function can-event.dispatch dispatch
+     * @parent can-event.static
+     * @signature `obj.dispatch(event, args)`
      *
      * Dispatches/triggers a basic event on an object.
+		 *
+		 * ```js
+		 * var canEvent = require("can-event");
+		 *
+		 * var obj = {};
+		 * Object.assign(obj, canEvent);
+		 *
+		 * obj.addEventListener("foo", function(){
+		 *   console.log("FOO BAR!");
+		 * });
+		 *
+		 * obj.dispatch("foo"); // Causes it to log FOO BAR
+		 * ```
      *
      * @param {String|Object} event The event to dispatch
      * @param {Array} [args] Additional arguments to pass to event handlers
      * @return {Object} event The resulting event object
      *
-     * @signature `can.event.dispatch.call( obj, event, args )`
+     * @signature `canEvent.dispatch.call(obj, event, args)`
      *
      * This syntax can be used for objects that don't include the `can.event` mixin.
      */
@@ -157,17 +179,17 @@ var canEvent = {
 	// Define abstract helpers
 
     /**
-     * @function can.event.on
-     * @parent can.event.static
-     * @signature `obj.on( event, handler )`
+     * @function can-event.on on
+     * @parent can-event.static
+     * @signature `obj.on(event, handler)`
      *
      * Add a basic event listener to an object.
      *
-     * This is an alias of [can.event.addEvent addEvent].
+     * This is an alias of [can-event.addEventListener addEventListener].
      *
-     * @signature `can.event.on.call( obj, event, handler )`
+     * @signature `can-event.on.call(obj, event, handler)`
      *
-     * This syntax can be used for objects that don't include the `can.event` mixin.
+     * This syntax can be used for objects that don't include the [can-event] mixin.
      */
     on: function(eventName, selector, handler) {
         var method = typeof selector === "string" ? "addDelegateListener" : "addEventListener";
@@ -179,17 +201,17 @@ var canEvent = {
     },
 
     /**
-     * @function can.event.off
-     * @parent can.event.static
-     * @signature `obj.off( event, handler )`
+     * @function can-event.off off
+     * @parent can-event.static
+     * @signature `obj.off(event, handler)`
      *
      * Removes a basic event listener from an object.
      *
-     * This is an alias of [can.event.removeEvent removeEvent].
+     * This is an alias of [can-event.removeEventListener removeEventListener].
      *
-     * @signature `can.event.off.call( obj, event, handler )`
+     * @signature `canEvent.off.call(obj, event, handler)`
      *
-     * This syntax can be used for objects that don't include the `can.event` mixin.
+     * This syntax can be used for objects that don't include the [can-event] mixin.
      */
     off: function(eventName, selector, handler) {
         var method = typeof selector === "string" ? "removeDelegateListener" : "removeEventListener";
@@ -200,16 +222,16 @@ var canEvent = {
         return eventBinder.apply(this, arguments);
     },
     /**
-     * @function can.event.trigger
-     * @parent can.event.static
-     * @signature `obj.trigger( event, args )`
+     * @function can-event.trigger trigger
+     * @parent can-event.static
+     * @signature `obj.trigger(event, args)`
      *
      * Dispatches/triggers a basic event on an object.
-     * This is an alias of [can.event.dispatch dispatch].
+     * This is an alias of [can-event.dispatch dispatch].
      *
-     * @signature `can.event.trigger.call( obj, event, args )`
+     * @signature `canEvent.trigger.call(obj, event, args)`
      *
-     * This syntax can be used for objects that don't include the `can.event` mixin.
+     * This syntax can be used for objects that don't include the [can-event] mixin.
      */
     trigger: function(){
         var listenWithDOM = domEvents.canAddEventListener.call(this);
@@ -218,13 +240,13 @@ var canEvent = {
         return dispatch.apply(this, arguments);
     },
 
-    // ## can.event.one
+    // ## can-event.one
     //
     // Adds a basic event listener that listens to an event once and only once.
     /**
-     * @function can.event.one
-     * @parent can.event.static
-     * @signature `obj.one( event, handler )`
+     * @function can-event.one one
+     * @parent can-event.static
+     * @signature `obj.one(event, handler)`
      *
      * Adds a basic event listener that listens to an event once and only once.
      *
@@ -245,7 +267,7 @@ var canEvent = {
     },
 
     // self listener methods
-    // ## can.event.listenTo
+    // ## can-event.listenTo
     //
     // Listens to an event without know how bind is implemented.
     // The primary use for this is to listen to another's objects event while
@@ -253,9 +275,9 @@ var canEvent = {
     //
     // The API was heavily influenced by BackboneJS: http://backbonejs.org/
     /**
-     * @function can.event.listenTo
-     * @parent can.event.static
-     * @signature `obj.listenTo( other, event, handler )`
+     * @function can-event.listenTo listenTo
+     * @parent can-event.static
+     * @signature `obj.listenTo(other, event, handler)`
      *
      * Listens for an event on another object.
      * This is similar to concepts like event namespacing, except that the namespace
@@ -266,9 +288,9 @@ var canEvent = {
      * @param {Function} handler The handler that will be executed to handle the event.
      * @return {Object} this
      *
-     * @signature `can.event.listenTo.call( obj, other, event, handler )`
+     * @signature `canEvent.listenTo.call(obj, other, event, handler)`
      *
-     * This syntax can be used for objects that don't include the `can.event` mixin.
+     * This syntax can be used for objects that don't include the [can-event] mixin.
      */
     listenTo: function (other, event, handler) {
     	// Initialize event cache
@@ -297,13 +319,13 @@ var canEvent = {
     	eventsEvents.push(handler);
     	canEvent.on.call(other, event, handler);
     },
-    // ## can.event.stopListening
+    // ## can-event.stopListening
     //
     // Stops listening for events on other objects
     /**
-     * @function can.event.stopListening
-     * @parent can.event.static
-     * @signature `obj.stopListening( other, event, handler )`
+     * @function can-event.stopListening stopListening
+     * @parent can-event.static
+     * @signature `obj.stopListening(other, event, handler)`
      *
      * Stops listening for an event on another object.
      *
@@ -312,9 +334,9 @@ var canEvent = {
      * @param {Function} handler The handler that will be executed to handle the event.
      * @return {Object} this
      *
-     * @signature `can.event.stopListening.call( obj, other, event, handler )`
+     * @signature `canEvent.stopListening.call(obj, other, event, handler)`
      *
-     * This syntax can be used for objects that don't include the `can.event` mixin.
+     * This syntax can be used for objects that don't include the [can-event] mixin.
      */
     stopListening: function (other, event, handler) {
     	var idedEvents = this.__listenToEvents,
@@ -373,76 +395,76 @@ var canEvent = {
 
 // add aliases
 /**
- * @function can.event.bind
- * @parent can.event.static
- * @signature `obj.bind( event, handler )`
+ * @function can-event.bind bind
+ * @parent can-event.static
+ * @signature `obj.bind(event, handler)`
  *
  * Add a basic event listener to an object.
  *
- * This is an alias of [can.event.addEvent addEvent].
+ * This is an alias of [can-event.addEventListener addEventListener].
  *
- * @signature `can.event.bind.call( obj, event, handler )`
+ * @signature `canEvent.bind.call(obj, event, handler)`
  *
- * This syntax can be used for objects that don't include the `can.event` mixin.
+ * This syntax can be used for objects that don't include the [can-event] mixin.
  */
 canEvent.bind = canEvent.addEventListener;
 canEvent.addEvent = canEvent.addEventListener;
 /**
- * @function can.event.unbind
- * @parent can.event.static
- * @signature `obj.unbind( event, handler )`
+ * @function can-event.unbind unbind
+ * @parent can-event.static
+ * @signature `obj.unbind(event, handler)`
  *
  * Removes a basic event listener from an object.
  *
- * This is an alias of [can.event.removeEvent removeEvent].
+ * This is an alias of [can-event.removeEventListener removeEventListener].
  *
- * @signature `can.event.unbind.call( obj, event, handler )`
+ * @signature `canEvent.unbind.call(obj, event, handler)`
  *
- * This syntax can be used for objects that don't include the `can.event` mixin.
+ * This syntax can be used for objects that don't include the [can-event] mixin.
  */
  canEvent.unbind = canEvent.removeEventListener;
  canEvent.removeEvent = canEvent.removeEventListener;
 /**
- * @function can.event.delegate
- * @parent can.event.static
- * @signature `obj.delegate( selector, event, handler )`
+ * @function can-event.delegate delegate
+ * @parent can-event.static
+ * @signature `obj.delegate(selector, event, handler)`
  *
  * Provides a compatibility layer for adding delegate event listeners.
  * This doesn't actually implement delegates, but rather allows
  * logic that assumes a delegate to still function.
  *
- * Therefore, this is essentially an alias of [can.event.addEvent addEvent] with the selector ignored.
+ * Therefore, this is essentially an alias of [can-event.addEventListener addEventListener] with the selector ignored.
  *
  * @param {String} selector The **ignored** selector to use for the delegate.
  * @param {String} event The name of the event to listen for.
  * @param {Function} handler The handler that will be executed to handle the event.
  * @return {Object} this
  *
- * @signature `can.event.delegate.call( obj, selector, event, handler )`
+ * @signature `canEvent.delegate.call(obj, selector, event, handler)`
  *
- * This syntax can be used for objects that don't include the `can.event` mixin.
+ * This syntax can be used for objects that don't include the [can.event] mixin.
  */
 canEvent.delegate = canEvent.on;
 
 /**
- * @function can.event.undelegate
- * @parent can.event.static
- * @signature `obj.undelegate( selector, event, handler )`
+ * @function can-event.undelegate undelegate
+ * @parent can-event.static
+ * @signature `obj.undelegate(selector, event, handler)`
  *
  * Provides a compatibility layer for removing delegate event listeners.
  * This doesn't actually implement delegates, but rather allows
  * logic that assumes a delegate to still function.
  *
- * Therefore, this is essentially an alias of [can.event.removeEvent removeEvent] with the selector ignored.
+ * Therefore, this is essentially an alias of [can-event.removeEventListener removeEventListener] with the selector ignored.
  *
  * @param {String} selector The **ignored** selector to use for the delegate.
  * @param {String} event The name of the event to listen for.
  * @param {Function} handler The handler that will be executed to handle the event.
  * @return {Object} this
  *
- * @signature `can.event.undelegate.call( obj, selector, event, handler )`
+ * @signature `canEvent.undelegate.call(obj, selector, event, handler)`
  *
- * This syntax can be used for objects that don't include the `can.event` mixin.
+ * This syntax can be used for objects that don't include the [can-event] mixin.
  */
 canEvent.undelegate = canEvent.off;
 
