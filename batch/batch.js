@@ -14,101 +14,109 @@ var batchNum = 1,
 
 var canBatch = {
 	/**
-	 * @function can.batch.start
-	 * @parent can.batch
+	 * @function can-event/batch/batch.start start
+	 * @parent can-event/batch/batch
 	 * @description Begin an event batch.
 	 *
-	 * @signature `can.batch.start([batchStopHandler])`
+	 * @signature `canBatch.start([batchStopHandler])`
 	 *
-	 * @param {Function} [batchStopHandler] a callback that gets called after all batched events have been called
+	 * @param {Function} [batchStopHandler] a callback that gets called after all batched events have been called.
 	 *
 	 * @body
-	 * `can.batch.start` causes can.Map to begin an event batch. Until `[can.batch.stop]` is called, any
-	 * events that would result from calls to `[can.Map::attr attr]` are held back from firing. If you have
-	 * lots of changes to make to can.Maps, batching them together can help performance &emdash; especially if
-	 * those can.Maps are live-bound to the DOM.
+	 * `canBatch.start` begins an event batch. Until `[can-event/batch/batch.stop]` is called, any
+	 * events that would result from calls to [can-event/batch/batch.trigger] to are held back from firing. If you have
+	 * lots of changes to make to observables, batching them together can help performance - especially if
+	 * those observables are live-bound to the DOM.
 	 *
-	 * In this example, you can see how the _first_ and _change_ events are not fired (and their handlers
-	 * are not called) until `can.batch.stop` is called.
+	 * In this example, you can see how the _first_ event is not fired (and their handlers
+	 * are not called) until `canBatch.stop` is called.
 	 *
 	 * ```
-	 * var person = new can.Map({
+	 * var person = new DefineMap({
 	 *     first: 'Alexis',
 	 *     last: 'Abril'
 	 * });
 	 *
-	 * person.bind('first', function() {
-	 *     console.log("First name changed."");
-	 * }).bind('change', function() {
-	 *     console.log("Something changed.");
+	 * person.on('first', function() {
+	 *     console.log("First name changed.");
+	 * }).on('last', function() {
+	 *     console.log("Last name changed.");
 	 * });
 	 *
-	 * can.batch.start();
-	 * person.attr('first', 'Alex');
+	 * canBatch.start();
+	 * person.first = 'Alex';
 	 * console.log('Still in the batch.');
-	 * can.batch.stop();
+	 * canBatch.stop();
 	 *
 	 * // the log has:
 	 * // Still in the batch.
 	 * // First name changed.
-	 * // Something changed.
 	 * ```
 	 *
-	 * You can also pass a callback to `can.batch.start` which will be called after all the events have
+	 * You can also pass a callback to `canBatch.start` which will be called after all the events have
 	 * been fired:
+	 *
 	 * ```
-	 * can.batch.start(function() {
+	 * canBatch.start(function() {
 	 *     console.log('The batch is over.');
 	 * });
-	 * person.attr('first', 'Izzy');
+	 * person.first = "Izzy"
 	 * console.log('Still in the batch.');
-	 * can.batch.stop();
+	 * canBatch.stop();
 	 *
 	 * // The console has:
 	 * // Still in the batch.
 	 * // First name changed.
-	 * // Something changed.
 	 * // The batch is over.
 	 * ```
 	 *
-	 * ## Calling `can.batch.start` multiple times
+	 * ## Calling `canBatch.start` multiple times
 	 *
-	 * If you call `can.batch.start` more than once, `can.batch.stop` needs to be called
+	 * If you call `canBatch.start` more than once, `canBatch.stop` needs to be called
 	 * the same number of times before any batched events will fire. For ways
-	 * to circumvent this process, see [can.batch.stop].
+	 * to circumvent this process, see [can-event/batch/batch.stop].
 	 *
 	 * Here is an example that demonstrates how events are affected by calling
-	 * `can.batch.start` multiple times.
+	 * `canBatch.start` multiple times.
 	 *
 	 * ```
-	 * var addPeople = function(observable) {
-	 *     can.batch.start();
-	 *     observable.attr('a', 'Alice');
-	 *     observable.attr('b', 'Bob');
-	 *     observable.attr('e', 'Eve');
-	 *     can.batch.stop();
-	 * };
-	 *
-	 * // In a completely different place:
-	 * var list = new can.Map();
-	 * list.bind('change', function() {
-	 *     console.log('The list changed.');
+	 * var Todo = DefineMap.extend({
+	 *   completed: "boolean",
+	 *   name: "string"
+	 *   updatedAt: "date",
+	 *   complete: function(){
+	 *     canBatch.start();
+	 *     this.completed = true;
+	 *     this.updatedAt = new Date();
+	 *     canBatch.end();
+	 *   }
 	 * });
 	 *
-	 * can.batch.start();
-	 * addPeople(list);
-	 * console.log('Still in the batch.');
+	 * Todo.List = DefineList.extend({
+	 *   "*": Todo,
+	 *   completeAll: function(){
+	 *     this.forEach(function(todo){
+	 *       todo.complete();
+	 *     });
+	 *   }
+	 * });
 	 *
-	 * // Here, the console has:
-	 * // Still in the batch.
+	 * var todos = new Todo.List([
+	 *   {name: "dishes", completed: false},
+	 *   {name: "lawn", completed: false}
+	 * ]);
 	 *
-	 * can.batch.stop();
+	 * todos[0].on("completed", function(ev){
+	 *   console.log("todos[0] "+ev.batchNum);
+	 * })
+	 * todos[1].on("completed", function(ev){
+	 *   console.log("todos[1] "+ev.batchNum);
+	 * });
 	 *
-	 * // Here, the console has:
-	 * // Still in the batch.
-	 * // The list changed.
-	 * // The list changed.
-	 * // The list changed.
+	 * todos.completeAll();
+	 * // console.logs ->
+	 * //        todos[0] 1
+	 * //        todos[1] 1
 	 * ```
 	 */
 	start: function (batchStopHandler) {
@@ -128,53 +136,29 @@ var canBatch = {
 
 	},
 	/**
-	 * @function can.batch.stop
-	 * @parent can.batch
+	 * @function can-event/batch/batch.stop stop
+	 * @parent can-event/batch/batch
 	 * @description End an event batch.
-	 * @signature `can.batch.stop([force[, callStart]])`
-	 * @param {bool} [force=false] whether to stop batching events immediately
-	 * @param {bool} [callStart=false] whether to call `[can.batch.start can.batch.start]` after firing batched events
+	 *
+	 * @signature `canBatch.stop([force[, callStart]])`
+	 *
+	 * If this call to `stop` matches the number of calls to `start`, all of this batch's [can-event/batch/batch.trigger triggered]
+	 * events will be dispatched.  If the firing of those events creates new events, those new events will be dispatched
+	 * after the current batch in their own batch.
+	 *
+	 * @param {bool} [force=false] Whether to stop batching events immediately.
+	 * @param {bool} [callStart=false] Whether to call [can-event/batch/batch.start] after firing batched events.
 	 *
 	 * @body
-	 * `can.batch.stop` matches an earlier `[can.batch.start]` call. If `can.batch.stop` has been
-	 * called as many times as `can.batch.start` (or if _force_ is true), all batched events will be
-	 * fired and any callbacks passed to `can.batch.start` since the beginning of the batch will be
-	 * called. If _force and _callStart_ are both true, a new batch will be started when all
+	 *
+	 * `canBatch.stop` matches an earlier `[can-event/batch/batch.start]` call. If `canBatch.stop` has been
+	 * called as many times as `canBatch.start` (or if _force_ is true), all batched events will be
+	 * fired and any callbacks passed to `canBatch.start` since the beginning of the batch will be
+	 * called. If _force_ and _callStart_ are both true, a new batch will be started when all
 	 * the events and callbacks have been fired.
 	 *
-	 * See `[can.batch.start]` for examples of `can.batch.start` and `can.batch.stop` in normal use.
+	 * See `[can-event/batch/batch.start]` for examples of `canBatch.start` and `canBatch.stop` in normal use.
 	 *
-	 * In this example, the batch is forceably ended in the `addPeople` function.
-	 * ```
-	 * var addPeople = function(observable) {
-	 *     can.batch.start();
-	 *     observable.attr('a', 'Alice');
-	 *     observable.attr('b', 'Bob');
-	 *     observable.attr('e', 'Eve');
-	 *     can.batch.stop(true);
-	 * };
-	 *
-	 * // In a completely different place:
-	 * var list = new can.Map();
-	 * list.bind('change', function() {
-	 *     console.log('The list changed.');
-	 * });
-	 *
-	 * can.batch.start();
-	 * addPeople(list);
-	 * console.log('Still in the batch.');
-	 *
-	 * // Here, the console has:
-	 * // Still in the batch.
-	 *
-	 * can.batch.stop();
-	 *
-	 * // Here, the console has:
-	 * // The list changed.
-	 * // The list changed.
-	 * // The list changed.
-	 * // Still in the batch.
-	 * ```
 	 */
 	stop: function (force, callStart) {
 		if (force) {
@@ -220,18 +204,28 @@ var canBatch = {
 	},
 	_onDispatchedEvents: function(){},
 	/**
-	 * @function can.batch.trigger
-	 * @parent can.batch
-	 * @description Trigger an event to be added to the current batch.
-	 * @signature `can.batch.trigger(item, event [, args])`
-	 * @param {can.Map} item the target of the event
-	 * @param {String|{type: String}} event the type of event, or an event object with a type given
+	 * @function can-event/batch/batch.trigger trigger
+	 * @parent can-event/batch/batch
+	 * @description Dispatchs an event within the event batching system.
+	 * @signature `canBatch.trigger(item, event [, args])`
+	 *
+	 * Makes sure an event is fired at the appropriate time within the appropriate batch.
+	 * How and when the event fires depends on the batching state.
+	 *
+	 * There are three states of batching:
+	 *
+	 * - no batches - `trigger` is called outside of any `start` or `stop` call -> The event is dispatched immediately.
+	 * - collecting batch - `trigger` is called between a `start` or `stop` call -> The event is dispatched when `stop` is called.
+	 * - firing batches -  `trigger` is called due to another `trigger` called within a batch -> The event is dispatched after the current batch has completed in a new batch.
+	 *
+	 * Finally, if the event has a `batchNum` it is fired immediately.
+	 *
+	 * @param {Object} item the target of the event.
+	 * @param {String|{type: String}} event the type of event, or an event object with a type given like `{type: 'name'}`
 	 * @param {Array} [args] the parameters to trigger the event with.
 	 *
 	 * @body
-	 * If events are currently being batched, calling `can.batch.trigger` adds an event
-	 * to the batch. If events are not currently being batched, the event is triggered
-	 * immediately.
+	 *
 	 */
 	trigger: function (event, args) {
 		var item = this;
@@ -270,6 +264,84 @@ var canBatch = {
 
 		}
 	},
+	/**
+	 * @function can-event/batch/batch.afterPreviousEvents afterPreviousEvents
+	 * @parent can-event/batch/batch
+	 * @description Run code when all previuos state has settled.
+	 *
+	 * @signature `canBatch.afterPreviousEvents(handler)`
+	 *
+	 * Calls `handler` when all previously [can-event/batch/batch.trigger triggered] events have
+	 * been fired.  This is useful to know when all fired events match the current state.
+	 *
+	 * @param {function} handler A function to call back when all previous events have fired.
+	 *
+	 * @body
+	 *
+	 *
+	 * ## Use
+	 *
+	 * With batching, it's possible for a piece of code to read some observable, and listen to
+	 * changes in that observable, but have events fired that it should ignore.
+	 *
+	 * For example, consider a list widget that creates `<li>`'s for each item in the list and listens to
+	 * updates in that list and adds or removes `<li>`s:
+	 *
+	 * ```js
+	 * var makeLi = function(){
+	 *   return document.createElement("li")
+	 * };
+	 *
+	 * var listWidget = function(list){
+	 *   var lis = list.map(makeLi);
+	 *   list.on("add", function(ev, added, index){
+	 *     var newLis = added.map(makeLi);
+	 *     lis.splice.apply(lis, [index, 0].concat(newLis) );
+	 *   }).on("remove", function(ev, removed, index){
+	 *     lis.splice(index, removed.length);
+	 *   });
+	 *
+	 *   return lis;
+	 * }
+	 * ```
+	 *
+	 * The problem with this is if someone calls `listWidget` within a batch:
+	 *
+	 * ```js
+	 * var list = new DefineList([]);
+	 *
+	 * canBatch.start();
+	 * list.push("can-event","can-event/batch/");
+	 * listWidget(list);
+	 * canBatch.stop();
+	 * ```
+	 *
+	 * The problem is that list will immediately create an `li` for both `can-event` and `can-event/batch/`, and then,
+	 * when `canBatch.stop()` is called, the `add` event listener will create duplicate `li`s.
+	 *
+	 * The solution, is to use `afterPreviousEvents`:
+	 *
+	 * ```js
+	 * var makeLi = function(){
+	 *   return document.createElement("li")
+	 * };
+	 *
+	 * var listWidget = function(list){
+	 *   var lis = list.map(makeLi);
+	 *   canBatch.afterPreviousEvents(function(){
+	 *     list.on("add", function(ev, added, index){
+	 *       var newLis = added.map(makeLi);
+	 *       lis.splice.apply(lis, [index, 0].concat(newLis) );
+	 *     }).on("remove", function(ev, removed, index){
+	 *       lis.splice(index, removed.length);
+	 *     });
+	 *   });
+	 * 
+	 *   return lis;
+	 * }
+	 * ```
+	 *
+	 */
 	// call handler after any events from currently settled stated have fired
 	// but before any future change events fire.
 	afterPreviousEvents: function(handler){

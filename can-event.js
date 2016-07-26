@@ -33,15 +33,15 @@ var canEvent = {
      * @signature `obj.addEventListener(event, handler)`
      *
      * Add a basic event listener to an object.
-		 *
-		 * ```js
-		 * var canEvent = require("can-event");
-		 *
-		 * var obj = {};
-		 * Object.assign(obj, canEvent);
-		 *
-		 * obj.addEventListener("foo", function(){ ... });
-		 * ```
+	 *
+	 * ```js
+	 * var canEvent = require("can-event");
+	 *
+	 * var obj = {};
+	 * Object.assign(obj, canEvent);
+	 *
+	 * obj.addEventListener("foo", function(){ ... });
+	 * ```
      *
      * @param {String} event The name of the event to listen for.
      * @param {Function} handler The handler that will be executed to handle the event.
