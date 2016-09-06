@@ -1,5 +1,5 @@
-var canEvent = require('can-event');
-var last = require('can-util/js/last/');
+var canEvent = require('./../can-event');
+var last = require('can-util/js/last/last');
 var namespace = require('can-util/namespace');
 
 // Which batch of events this is for -- might not want to send multiple
@@ -336,7 +336,7 @@ var canBatch = {
 	 *       lis.splice(index, removed.length);
 	 *     });
 	 *   });
-	 * 
+	 *
 	 *   return lis;
 	 * }
 	 * ```
