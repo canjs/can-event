@@ -115,19 +115,19 @@ var canEvent = {
      * @signature `obj.dispatch(event, args)`
      *
      * Dispatches/triggers a basic event on an object.
-		 *
-		 * ```js
-		 * var canEvent = require("can-event");
-		 *
-		 * var obj = {};
-		 * Object.assign(obj, canEvent);
-		 *
-		 * obj.addEventListener("foo", function(){
-		 *   console.log("FOO BAR!");
-		 * });
-		 *
-		 * obj.dispatch("foo"); // Causes it to log FOO BAR
-		 * ```
+	 *
+	 * ```js
+	 * var canEvent = require("can-event");
+	 *
+	 * var obj = {};
+	 * Object.assign(obj, canEvent);
+	 *
+	 * obj.addEventListener("foo", function(){
+	 *   console.log("FOO BAR!");
+	 * });
+	 *
+	 * obj.dispatch("foo"); // Causes it to log FOO BAR
+	 * ```
      *
      * @param {String|Object} event The event to dispatch
      * @param {Array} [args] Additional arguments to pass to event handlers
@@ -137,7 +137,7 @@ var canEvent = {
      *
      * This syntax can be used for objects that don't include the `can.event` mixin.
      */
-    dispatch: function (event, args) {
+    dispatchSync: function (event, args) {
     	var events = this.__bindEvents;
     	if (!events) {
     		return;
@@ -407,8 +407,10 @@ var canEvent = {
  *
  * This syntax can be used for objects that don't include the [can-event] mixin.
  */
-canEvent.bind = canEvent.addEventListener;
-canEvent.addEvent = canEvent.addEventListener;
+canEvent.addEvent = canEvent.bind = function(){
+    // Use a wrapping function so `addEventListener`'s behavior can change.
+    return canEvent.addEventListener.apply(this, arguments);
+};
 /**
  * @function can-event.unbind unbind
  * @parent can-event.static
@@ -422,8 +424,9 @@ canEvent.addEvent = canEvent.addEventListener;
  *
  * This syntax can be used for objects that don't include the [can-event] mixin.
  */
- canEvent.unbind = canEvent.removeEventListener;
- canEvent.removeEvent = canEvent.removeEventListener;
+canEvent.unbind =  canEvent.removeEvent = function(){
+    return canEvent.removeEventListener.apply(this, arguments);
+};
 /**
  * @function can-event.delegate delegate
  * @parent can-event.static
@@ -467,5 +470,7 @@ canEvent.delegate = canEvent.on;
  * This syntax can be used for objects that don't include the [can-event] mixin.
  */
 canEvent.undelegate = canEvent.off;
+
+canEvent.dispatch = canEvent.dispatchSync;
 
 module.exports = namespace.event = canEvent;
