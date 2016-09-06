@@ -395,4 +395,9 @@ var canBatch = {
 
 canEvent.dispatch = canBatch.dispatch;
 
+canBatch.trigger = function(){
+	console.warn("use canEvent.dispatch instead");
+	return canEvent.dispatch.apply(this, arguments);
+};
+
 module.exports = namespace.batch = canBatch;
