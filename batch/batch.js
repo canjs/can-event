@@ -2,17 +2,18 @@ var canEvent = require('can-event');
 var last = require('can-util/js/last/');
 var namespace = require('can-util/namespace');
 
+
 // Which batch of events this is for -- might not want to send multiple
 // messages on the same batch.  This is mostly for event delegation.
 var batchNum = 1,
-	// how many times has start been called without a stop
-	transactions = 0,
 	dispatchingBatch = null,
 	collectingBatch = null,
 	batches = [],
 	dispatchingBatches = false;
 
 var canBatch = {
+	// how many times has start been called without a stop
+	transactions: 0,
 	/**
 	 * @function can-event/batch/batch.start start
 	 * @parent can-event/batch/batch
@@ -120,10 +121,10 @@ var canBatch = {
 	 * ```
 	 */
 	start: function (batchStopHandler) {
-		transactions++;
-		if(transactions === 1) {
+		canBatch.transactions++;
+		if(canBatch.transactions === 1) {
 			var batch = {
-				events: [],
+				tasks: [],
 				callbacks: [],
 				number: batchNum++
 			};
@@ -162,17 +163,17 @@ var canBatch = {
 	 */
 	stop: function (force, callStart) {
 		if (force) {
-			transactions = 0;
+			canBatch.transactions = 0;
 		} else {
-			transactions--;
+			canBatch.transactions--;
 		}
-		if (transactions === 0) {
+		if (canBatch.transactions === 0) {
 			collectingBatch = null;
 			var batch;
 			if(dispatchingBatches === false) {
 				dispatchingBatches = true;
 				while(batch = batches.shift()) {
-					var events = batch.events;
+					var tasks = batch.tasks;
 					var callbacks = batch.callbacks;
 					dispatchingBatch = batch;
 					canBatch.batchNum = batch.number;
@@ -182,12 +183,11 @@ var canBatch = {
 					if (callStart) {
 						canBatch.start();
 					}
-					for(i = 0, len = events.length; i < len; i++) {
-						canEvent.dispatch.apply(events[i][0],events[i][1]);
+					for(i = 0, len = tasks.length; i < len; i++) {
+						tasks[i][0].apply(tasks[i][1],tasks[i][2]);
 					}
 
-
-					canBatch._onDispatchedEvents(batch.number);
+					canBatch.dispatchSync(canBatch,"batchEnd",[]);
 
 					for(i = 0; i < callbacks.length; i++) {
 						callbacks[i]();
@@ -204,7 +204,7 @@ var canBatch = {
 	},
 	_onDispatchedEvents: function(){},
 	/**
-	 * @function can-event/batch/batch.trigger trigger
+	 * @function can-event/batch/batch.dispatch dispatch
 	 * @parent can-event/batch/batch
 	 * @description Dispatchs an event within the event batching system.
 	 * @signature `canBatch.trigger(item, event [, args])`
@@ -227,7 +227,8 @@ var canBatch = {
 	 * @body
 	 *
 	 */
-	trigger: function (event, args) {
+	dispatch: function (event, args) {
+
 		var item = this;
 		// Don't send events if initalizing.
 		if (!item.__inSetup) {
@@ -237,21 +238,23 @@ var canBatch = {
 			// if there's a batch, add it to this batches events
 			if(collectingBatch) {
 				event.batchNum = collectingBatch.number;
-				collectingBatch.events.push([
+				collectingBatch.tasks.push([
+					canEvent.dispatchSync,
 					item,
 					[event, args]
 				]);
 			}
 			// if this is trying to belong to another batch, let it fire
 			else if(event.batchNum) {
-				canEvent.dispatch.call( item, event, args );
+				canEvent.dispatchSync.call( item, event, args );
 			}
 			// if there are batches, but this doesn't belong to a batch
 			// add it to its own batch
 			else if(batches.length) {
 				canBatch.start();
 				event.batchNum = collectingBatch.number;
-				collectingBatch.events.push([
+				collectingBatch.tasks.push([
+					canEvent.dispatchSync,
 					item,
 					[event, args]
 				]);
@@ -259,9 +262,25 @@ var canBatch = {
 			}
 			// there are no batches, so just fire the event.
 			else {
-				canEvent.dispatch.call( item, event, args );
+				canEvent.dispatchSync.call( item, event, args );
 			}
 
+		}
+	},
+	queue: function(task){
+		if(collectingBatch) {
+			collectingBatch.tasks.push(task);
+		}
+		// if there are batches, but this doesn't belong to a batch
+		// add it to its own batch
+		else if(batches.length) {
+			canBatch.start();
+			collectingBatch.tasks.push(task);
+			canBatch.stop();
+		}
+		// there are no batches, so just fire the event.
+		else {
+			task[0].apply(task[1], task[2]);
 		}
 	},
 	/**
@@ -336,7 +355,7 @@ var canBatch = {
 	 *       lis.splice(index, removed.length);
 	 *     });
 	 *   });
-	 * 
+	 *
 	 *   return lis;
 	 * }
 	 * ```
@@ -348,12 +367,7 @@ var canBatch = {
 		var batch = last(batches);
 
 		if(batch) {
-			var obj = {};
-			canEvent.addEvent.call(obj,"ready", handler);
-			batch.events.push([
-				obj,
-				[{type: "ready"}, []]
-			]);
+			batch.tasks.push([handler]);
 		} else {
 			handler({});
 		}
@@ -368,5 +382,11 @@ var canBatch = {
 		}
 	}
 };
+
+for(var prop in canEvent) {
+	if(!canBatch[prop]) {
+		canBatch[prop] = canEvent[prop];
+	}
+}
 
 module.exports = namespace.batch = canBatch;
