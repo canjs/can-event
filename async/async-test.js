@@ -51,12 +51,14 @@ QUnit.asyncTest('removing an event handler, nothing called', 5, function () {
 
 });
 
-QUnit.asyncTest('removing an event handler, nothing called with on', 5, function () {
+QUnit.asyncTest('removing an event handler, nothing called with on', 6, function () {
 	var obj = {};
 
 	assign(obj, canEvent);
 
+	var dispatched = false;
 	var handler = function (ev, arg1, arg2) {
+		ok(dispatched, "dispatched should be async");
 		ok(true, 'foo called');
 		equal(ev.type, 'foo');
 		equal(arg1, 1, 'one');
@@ -71,6 +73,7 @@ QUnit.asyncTest('removing an event handler, nothing called with on', 5, function
 		1,
 		2
 	]);
+	dispatched = true;
 
 	obj.off('foo', handler);
 

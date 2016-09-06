@@ -407,8 +407,10 @@ var canEvent = {
  *
  * This syntax can be used for objects that don't include the [can-event] mixin.
  */
-canEvent.bind = canEvent.addEventListener;
-canEvent.addEvent = canEvent.addEventListener;
+canEvent.addEvent = canEvent.bind = function(){
+    // Use a wrapping function so `addEventListener`'s behavior can change.
+    return canEvent.addEventListener.apply(this, arguments);
+};
 /**
  * @function can-event.unbind unbind
  * @parent can-event.static
@@ -422,8 +424,9 @@ canEvent.addEvent = canEvent.addEventListener;
  *
  * This syntax can be used for objects that don't include the [can-event] mixin.
  */
- canEvent.unbind = canEvent.removeEventListener;
- canEvent.removeEvent = canEvent.removeEventListener;
+canEvent.unbind =  canEvent.removeEvent = function(){
+    return canEvent.removeEventListener.apply(this, arguments);
+};
 /**
  * @function can-event.delegate delegate
  * @parent can-event.static

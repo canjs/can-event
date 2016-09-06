@@ -1,3 +1,7 @@
+// # can-event/async
+// Makes the event system async.
+// Provides methods to toggle the behavior
+
 var canEvent = require("can-event");
 var canBatch = require("can-event/batch/batch");
 var setImmediate = require('can-util/js/set-immediate/set-immediate');
@@ -7,28 +11,24 @@ var assign = require("can-util/js/assign/assign");
 var timeout;
 var clearImmediate = GLOBAL.clearImmediate || GLOBAL.clearTimeout;
 
-var dispatchTriggeredEvent = false;
-
 
 var syncBatchDispatch = canBatch.dispatch;
 var syncBatchQueue = canBatch.queue;
-var syncAddEventListener =  canBatch.addEventListener;
-var syncRemoveEventListener =  canBatch.removeEventListener;
+var syncAddEventListener =  canEvent.addEventListener;
+var syncRemoveEventListener =  canEvent.removeEventListener;
 
 var asyncMethods = {
 	dispatch: function(){
-		if(!dispatchTriggeredEvent) {
+		if(!canBatch.collecting()) {
 			canBatch.start();
 			timeout = setImmediate(canBatch.stop);
-			dispatchTriggeredEvent = true;
 		}
 		return syncBatchDispatch.apply(this, arguments);
 	},
 	queue: function(){
-		if(!dispatchTriggeredEvent) {
+		if(!canBatch.collecting()) {
 			canBatch.start();
 			timeout = setImmediate(canBatch.stop);
-			dispatchTriggeredEvent = true;
 		}
 		return syncBatchQueue.apply(this, arguments);
 	},
@@ -40,9 +40,6 @@ var asyncMethods = {
 	}
 };
 
-asyncMethods.bind = asyncMethods.addEvent = asyncMethods.on = asyncMethods.addEventListener;
-asyncMethods.unbind = asyncMethods.removeEvent = asyncMethods.off = asyncMethods.removeEventListener;
-
 var syncMethods = assign({},canEvent);
 
 var eventAsync = {
@@ -50,19 +47,20 @@ var eventAsync = {
 		assign(canEvent, asyncMethods);
 	},
 	sync: function(){
-		assign(canEvent, syncMethods)
+		if( canBatch.collecting() ) {
+			clearImmediate(timeout);
+			canBatch.stop();
+		}
+		assign(canEvent, syncMethods);
 	},
 	flush: function(){
-		if(dispatchTriggeredEvent) {
+		if( canBatch.collecting() ) {
 			clearImmediate(timeout);
-			dispatchTriggeredEvent = false;
 			canBatch.stop();
 		}
 	}
 };
 
 assign(eventAsync, asyncMethods);
-
-eventAsync.async();
 
 module.exports = eventAsync;

@@ -2,6 +2,7 @@ var canEvent = require('can-event');
 var QUnit = require('steal-qunit');
 var assign = require('can-util/js/assign/');
 require('can-util/dom/events/delegate/');
+require("can-event/batch/batch-test");
 require("can-event/async/async-test");
 
 QUnit.module('can-event');

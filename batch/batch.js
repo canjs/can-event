@@ -1,3 +1,11 @@
+// # can-event/batch/
+// Adds task batching abilities to event dispatching.
+// Provides a `queue` method to add batched work.
+// Overwrites `event.dispatch` to use the task queue when dispatching events.
+// Provides a `start` and `stop` method used to a queue.
+// Provides `collecting` which returns the queue collecting tasks.
+// Provides `dispatching` which returns the queue dispatching tasks.
+// Dispatches `batchEnd` when a queue's tasks have been completed.
 var canEvent = require('can-event');
 var last = require('can-util/js/last/');
 var namespace = require('can-util/namespace');
@@ -6,10 +14,10 @@ var namespace = require('can-util/namespace');
 // Which batch of events this is for -- might not want to send multiple
 // messages on the same batch.  This is mostly for event delegation.
 var batchNum = 1,
-	dispatchingBatch = null,
-	collectingBatch = null,
-	batches = [],
-	dispatchingBatches = false;
+	dispatchingQueue = null,
+	collectionQueue = null,
+	queues = [],
+	dispatchingQueues = false;
 
 var canBatch = {
 	// how many times has start been called without a stop
@@ -123,18 +131,24 @@ var canBatch = {
 	start: function (batchStopHandler) {
 		canBatch.transactions++;
 		if(canBatch.transactions === 1) {
-			var batch = {
+			var queue = {
 				tasks: [],
 				callbacks: [],
 				number: batchNum++
 			};
-			batches.push(batch);
+			queues.push(queue);
 			if (batchStopHandler) {
-				batch.callbacks.push(batchStopHandler);
+				queue.callbacks.push(batchStopHandler);
 			}
-			collectingBatch = batch;
+			collectionQueue = queue;
 		}
 
+	},
+	collecting: function(){
+		return collectionQueue;
+	},
+	dispatching: function(){
+		return dispatchingQueue;
 	},
 	/**
 	 * @function can-event/batch/batch.stop stop
@@ -168,41 +182,35 @@ var canBatch = {
 			canBatch.transactions--;
 		}
 		if (canBatch.transactions === 0) {
-			collectingBatch = null;
-			var batch;
-			if(dispatchingBatches === false) {
-				dispatchingBatches = true;
-				while(batch = batches.shift()) {
-					var tasks = batch.tasks;
-					var callbacks = batch.callbacks;
-					dispatchingBatch = batch;
-					canBatch.batchNum = batch.number;
+			collectionQueue = null;
+			var queue;
+			if(dispatchingQueues === false) {
+				dispatchingQueues = true;
+				while(queue = queues.shift()) {
+					var tasks = queue.tasks;
+					var callbacks = queue.callbacks;
+					dispatchingQueue = queue;
+					canBatch.batchNum = queue.number;
 
 					var i, len;
 
-					if (callStart) {
-						canBatch.start();
-					}
 					for(i = 0, len = tasks.length; i < len; i++) {
 						tasks[i][0].apply(tasks[i][1],tasks[i][2]);
 					}
 
-					canBatch.dispatchSync(canBatch,"batchEnd",[]);
+					canEvent.dispatchSync.call(canBatch,"batchEnd",[queue.number]);
 
 					for(i = 0; i < callbacks.length; i++) {
 						callbacks[i]();
 					}
-					dispatchingBatch = null;
+					dispatchingQueue = null;
 					canBatch.batchNum = undefined;
 
 				}
-				dispatchingBatches = false;
+				dispatchingQueues = false;
 			}
-
-
 		}
 	},
-	_onDispatchedEvents: function(){},
 	/**
 	 * @function can-event/batch/batch.dispatch dispatch
 	 * @parent can-event/batch/batch
@@ -214,9 +222,9 @@ var canBatch = {
 	 *
 	 * There are three states of batching:
 	 *
-	 * - no batches - `trigger` is called outside of any `start` or `stop` call -> The event is dispatched immediately.
+	 * - no queues - `trigger` is called outside of any `start` or `stop` call -> The event is dispatched immediately.
 	 * - collecting batch - `trigger` is called between a `start` or `stop` call -> The event is dispatched when `stop` is called.
-	 * - firing batches -  `trigger` is called due to another `trigger` called within a batch -> The event is dispatched after the current batch has completed in a new batch.
+	 * - firing queues -  `trigger` is called due to another `trigger` called within a batch -> The event is dispatched after the current batch has completed in a new batch.
 	 *
 	 * Finally, if the event has a `batchNum` it is fired immediately.
 	 *
@@ -235,10 +243,10 @@ var canBatch = {
 			event = typeof event === 'string' ? {
 				type: event
 			} : event;
-			// if there's a batch, add it to this batches events
-			if(collectingBatch) {
-				event.batchNum = collectingBatch.number;
-				collectingBatch.tasks.push([
+			// if there's a batch, add it to this queues events
+			if(collectionQueue) {
+				event.batchNum = collectionQueue.number;
+				collectionQueue.tasks.push([
 					canEvent.dispatchSync,
 					item,
 					[event, args]
@@ -248,19 +256,21 @@ var canBatch = {
 			else if(event.batchNum) {
 				canEvent.dispatchSync.call( item, event, args );
 			}
-			// if there are batches, but this doesn't belong to a batch
+			// if there are queues, but this doesn't belong to a batch
 			// add it to its own batch
-			else if(batches.length) {
+			else if(queues.length || dispatchingQueue) {
+				// start a batch so it can be colllected.
+				// this should never hit in async
 				canBatch.start();
-				event.batchNum = collectingBatch.number;
-				collectingBatch.tasks.push([
+				event.batchNum = collectionQueue.number;
+				collectionQueue.tasks.push([
 					canEvent.dispatchSync,
 					item,
 					[event, args]
 				]);
-				canBatch.stop();
+				collectionQueue.callbacks.push(canBatch.stop);
 			}
-			// there are no batches, so just fire the event.
+			// there are no queues, so just fire the event.
 			else {
 				canEvent.dispatchSync.call( item, event, args );
 			}
@@ -268,17 +278,17 @@ var canBatch = {
 		}
 	},
 	queue: function(task){
-		if(collectingBatch) {
-			collectingBatch.tasks.push(task);
+		if(collectionQueue) {
+			collectionQueue.tasks.push(task);
 		}
-		// if there are batches, but this doesn't belong to a batch
+		// if there are queues, but this doesn't belong to a batch
 		// add it to its own batch
-		else if(batches.length) {
+		else if(queues.length) {
 			canBatch.start();
-			collectingBatch.tasks.push(task);
+			collectionQueue.tasks.push(task);
 			canBatch.stop();
 		}
-		// there are no batches, so just fire the event.
+		// there are no queues, so just fire the event.
 		else {
 			task[0].apply(task[1], task[2]);
 		}
@@ -364,29 +374,25 @@ var canBatch = {
 	// call handler after any events from currently settled stated have fired
 	// but before any future change events fire.
 	afterPreviousEvents: function(handler){
-		var batch = last(batches);
+		var queue = last(queues);
 
-		if(batch) {
-			batch.tasks.push([handler]);
+		if(queue) {
+			queue.tasks.push([handler]);
 		} else {
 			handler({});
 		}
 	},
 	after: function(handler){
-		var batch = collectingBatch || dispatchingBatch;
+		var queue = collectionQueue || dispatchingQueue;
 
-		if(batch) {
-			batch.callbacks.push(handler);
+		if(queue) {
+			queue.callbacks.push(handler);
 		} else {
 			handler({});
 		}
 	}
 };
 
-for(var prop in canEvent) {
-	if(!canBatch[prop]) {
-		canBatch[prop] = canEvent[prop];
-	}
-}
+canEvent.dispatch = canBatch.dispatch;
 
 module.exports = namespace.batch = canBatch;
