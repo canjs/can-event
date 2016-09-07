@@ -144,9 +144,51 @@ var canBatch = {
 		}
 
 	},
+	/**
+	 * @function can-event/batch/batch.collecting collecting
+	 * @parent can-event/batch/batch
+	 *
+	 * @signature `batch.collecting()`
+	 *
+	 * Returns the Queue that is currently collecting tasks.
+	 *
+	 * ```
+	 * batch.start();
+	 * batch.collecting() //-> Queue
+	 *
+	 * batch.stop();
+	 * batch.collecting() //-> null
+	 * ```
+	 *
+	 * @return {can-event/batch/Queue} The queue currently collecting tasks.
+	 */
 	collecting: function(){
 		return collectionQueue;
 	},
+	/**
+	 * @function can-event/batch/batch.dispatching dispatching
+	 * @parent can-event/batch/batch
+	 *
+	 * @signature `batch.dispatching()`
+	 *
+	 * Returns the Queue that is executing tasks.
+	 *
+	 * ```
+	 * var canEvent = require("can-event");
+	 * var batch = require("can-event/batch/batch");
+	 *
+	 *
+	 * var obj = Object.assign({}, canEvent);
+	 *
+	 * 
+	 *
+	 * batch.start();
+	 * obj.dispatch("first");
+	 * batch.stop();
+	 * ```
+	 *
+	 * @return {can-event/batch/Queue} The queue currently executing tasks.
+	 */
 	dispatching: function(){
 		return dispatchingQueue;
 	},
@@ -277,16 +319,41 @@ var canBatch = {
 
 		}
 	},
+	/**
+	 * @function can-event/batch/batch.queue queue
+	 * @parent can-event/batch/batch
+	 * @description Queues a method to be called.
+	 *
+	 * @signature `batch.queue(task)`
+	 *
+	 * Queues a method to be called in the current [can-event/batch/batch.collecting]
+	 * queue if there is one.  If there is a [can-event/batch/batch.dispatching] queue,
+	 * it will create a batch and add the task to that batch.
+	 * Finally, if there is no batch, the task will be executed immediately.
+	 *
+	 * ```
+	 * var me = {
+	 *   say: function(message){
+	 *     console.log(this.name,"says", message);
+	 *   }
+	 * }
+	 * batch.queue([me.say, me, ["hi"]]);
+	 * ```
+	 *
+	 * @param  {Array<function,*,Array>} task An array that details a
+	 * function to be called, the context the function should be called with, and
+	 * the arguments to the function like: `[function,context, [arg1, arg2]]`
+	 */
 	queue: function(task){
 		if(collectionQueue) {
 			collectionQueue.tasks.push(task);
 		}
 		// if there are queues, but this doesn't belong to a batch
 		// add it to its own batch
-		else if(queues.length) {
+		else if(queues.length  || dispatchingQueue) {
 			canBatch.start();
 			collectionQueue.tasks.push(task);
-			canBatch.stop();
+			collectionQueue.callbacks.push(canBatch.stop);
 		}
 		// there are no queues, so just fire the event.
 		else {

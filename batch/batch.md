@@ -1,15 +1,23 @@
 @module {Object} can-event/batch/batch
 @parent can-infrastructure
 
-@description [can-event/batch/batch.start `can.batch.start( batchStopHandler )`] and
-[can-event/batch/batch.stop `can.batch.stop( force, callStart )`] are used to specify
-atomic-like operations. `start`
-prevents [can-event/batch/batch.trigger batch.trigger] events from being fired until `stop` is called.
+@description Adds task batching abilities to event dispatching.
 
 @signature `Object`
 
-`can-event/batch/batch` exports an with the [can-event/batch/batch.start], [can-event/batch/batch.stop]
-and [can-event/batch/batch.trigger] methods.
+The `can-event/batch/batch` module adds task batching abilities to
+the [can-event] module.  
+
+// Provides a `queue` method to add batched work.
+// Overwrites `event.dispatch` to use the task queue when dispatching events.
+// Provides a `start` and `stop` method used to a queue.
+// Provides `collecting` which returns the queue collecting tasks.
+// Provides `dispatching` which returns the queue dispatching tasks.
+// Dispatches `batchEnd` when a queue's tasks have been completed.
+
+
+ exports the [can-event/batch/batch.start], [can-event/batch/batch.stop]
+and [can-event/batch/batch.dis] methods.
 
 @body
 

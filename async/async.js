@@ -42,9 +42,11 @@ var asyncMethods = {
 
 var syncMethods = assign({},canEvent);
 
+var isAsync = false;
 var eventAsync = {
 	async: function(){
 		assign(canEvent, asyncMethods);
+		isAsync = true;
 	},
 	sync: function(){
 		if( canBatch.collecting() ) {
@@ -52,9 +54,10 @@ var eventAsync = {
 			canBatch.stop();
 		}
 		assign(canEvent, syncMethods);
+		isAsync = false;
 	},
 	flush: function(){
-		if( canBatch.collecting() ) {
+		if(isAsync && canBatch.collecting() ) {
 			clearImmediate(timeout);
 			canBatch.stop();
 		}
