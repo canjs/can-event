@@ -6,25 +6,21 @@
 @signature `Object`
 
 The `can-event/batch/batch` module adds task batching abilities to
-the [can-event] module.  
+the [can-event] module.  It:
 
-// Provides a `queue` method to add batched work.
-// Overwrites `event.dispatch` to use the task queue when dispatching events.
-// Provides a `start` and `stop` method used to a queue.
-// Provides `collecting` which returns the queue collecting tasks.
-// Provides `dispatching` which returns the queue dispatching tasks.
-// Dispatches `batchEnd` when a queue's tasks have been completed.
-
-
- exports the [can-event/batch/batch.start], [can-event/batch/batch.stop]
-and [can-event/batch/batch.dis] methods.
+ - Provides a [can-event/batch/batch.queue] method to add batched work.
+ - Provides [can-event/batch/batch.dispatch] and overwrites [can-event.dispatch can-event.dispatch] to use the task queue when dispatching events.
+ - Provides a [can-event/batch/batch.start] and [can-event/batch/batch.stop] method that can create a new task queue.
+ - Provides [can-event/batch/batch.collecting] which returns the queue collecting tasks.
+ - Provides [can-event/batch/batch.dispatching] which returns the queue dispatching tasks.
+ - Dispatches `batchEnd` when a queue's tasks have been completed.
 
 @body
 
 ## Use
 
 To batch events, call  [can-event/batch/batch.start], then make changes that
-[can-event/batch/batch.trigger] batched events, then call [can-event/batch/batch.stop].
+[can-event/batch/batch.dispatch] batched events, then call [can-event/batch/batch.stop].
 
 For example, a map might have a `first` and `last` property:
 
@@ -135,25 +131,9 @@ All events created within a set of `start` / `stop` calls share the same
 batchNum value. This can be used to respond only once for a given batchNum.
 
     var batchNum;
-    person.on("change", function(ev, newVal, oldVal) {
+    person.on("name", function(ev, newVal, oldVal) {
       if(!ev.batchNum || ev.batchNum !== batchNum) {
         batchNum = ev.batchNum;
         // your code here!
       }
     });
-
-## Automatic Batching
-
-Libraries like Angular and Ember always batch operations. This behavior can be
-reproduced by batching everything that happens within the same thread of
-execution and/or within 10ms of each other.
-
-
-
-```
-canBatch.start();
-setTimeout(function() {
-  canBatch.stop(true, true);
-  setTimeout(arguments.callee, 10);
-}, 10);
-```

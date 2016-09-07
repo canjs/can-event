@@ -112,7 +112,7 @@ var canEvent = {
     /**
      * @function can-event.dispatch dispatch
      * @parent can-event.static
-     * @signature `obj.dispatch(event, args)`
+     * @signature `obj.dispatch(event, [args])`
      *
      * Dispatches/triggers a basic event on an object.
 	 *
