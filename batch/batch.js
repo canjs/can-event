@@ -136,7 +136,7 @@ var canBatch = {
 				callbacks: [],
 				number: batchNum++
 			};
-			queues.push(queue);
+			//queues.push(queue);
 			if (batchStopHandler) {
 				queue.callbacks.push(batchStopHandler);
 			}
@@ -180,7 +180,7 @@ var canBatch = {
 	 *
 	 * var obj = Object.assign({}, canEvent);
 	 *
-	 * 
+	 *
 	 *
 	 * batch.start();
 	 * obj.dispatch("first");
@@ -224,9 +224,12 @@ var canBatch = {
 			canBatch.transactions--;
 		}
 		if (canBatch.transactions === 0) {
-			collectionQueue = null;
+
 			var queue;
-			if(dispatchingQueues === false) {
+			queues.push(collectionQueue);
+			collectionQueue = null;
+			if(!dispatchingQueues) {
+				collectionQueue = null;
 				dispatchingQueues = true;
 				while(queue = queues.shift()) {
 					var tasks = queue.tasks;
@@ -299,7 +302,7 @@ var canBatch = {
 				canEvent.dispatchSync.call( item, event, args );
 			}
 			// if there are queues, but this doesn't belong to a batch
-			// add it to its own batch
+			// add it to its own batch fired at the end
 			else if(queues.length || dispatchingQueue) {
 				// start a batch so it can be colllected.
 				// this should never hit in async
@@ -310,7 +313,8 @@ var canBatch = {
 					item,
 					[event, args]
 				]);
-				collectionQueue.callbacks.push(canBatch.stop);
+				
+				(last(queues) || dispatchingQueue).callbacks.push(canBatch.stop);
 			}
 			// there are no queues, so just fire the event.
 			else {
@@ -353,7 +357,7 @@ var canBatch = {
 		else if(queues.length  || dispatchingQueue) {
 			canBatch.start();
 			collectionQueue.tasks.push(task);
-			collectionQueue.callbacks.push(canBatch.stop);
+			(last(queues) || dispatchingQueue).callbacks.push(canBatch.stop);
 		}
 		// there are no queues, so just fire the event.
 		else {

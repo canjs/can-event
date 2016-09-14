@@ -29,8 +29,6 @@ function Thing(){
 
 assign(Thing.prototype, canEvent);
 
-// Can not apply event listeners
-
 var thing = new Thing();
 thing.addEventListener("prop", function(){ ... });
 ```

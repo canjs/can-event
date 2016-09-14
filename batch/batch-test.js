@@ -19,9 +19,11 @@ QUnit.test("basics", function(){
 	var collecting;
 	var secondFired = false;
 	var obj = assign({}, canEvent);
-	obj.on("first", function(ev){
+	obj.on("first", function(ev, arg1, arg2){
 		QUnit.equal(collecting.number, ev.batchNum, "same batch num");
 		QUnit.equal(canBatch.dispatching(), collecting, "dispatching old collecting");
+		QUnit.equal(arg1, 1, "first arg");
+		QUnit.equal(arg2, 2, "second arg");
 
 		collecting = canBatch.collecting();
 		QUnit.ok(!collecting, "not collecting b/c we're not in a batch yet");
@@ -42,8 +44,27 @@ QUnit.test("basics", function(){
 	canBatch.start();
 	collecting = canBatch.collecting();
 	QUnit.ok(canBatch.collecting(), "is collecting");
-	obj.dispatch("first");
+	obj.dispatch("first",[1,2]);
 	canBatch.stop();
 
 
+});
+
+QUnit.test("events are queued and dispatched without .stop being called (#14)", function(){
+	var obj = assign({}, canEvent);
+
+
+	obj.on("first", function(ev){
+		obj.dispatch("second");
+		QUnit.ok(canBatch.collecting() !== canBatch.dispatching(), "dispatching is not collecting");
+	});
+
+	obj.on("second", function(){
+		QUnit.ok(canBatch.collecting() !== canBatch.dispatching(), "dispatching is not collecting");
+		QUnit.ok(true, "called");
+	});
+
+	canBatch.start();
+	obj.dispatch("first");
+	canBatch.stop();
 });
