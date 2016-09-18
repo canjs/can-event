@@ -38,8 +38,11 @@ var asyncMethods = {
      * @param {Array} [args] Additional arguments to pass to event handlers
      * @return {Object} event The resulting event object
 	 */
-	dispatch: function(){
-		if(!canBatch.collecting()) {
+	dispatch: function(ev){
+		// if we're not currently collecting events (and we didn't dispatch something for this batch),
+		// then start a batch.
+		var batchNum = typeof ev === "object" && ev.batchNum;
+		if(!canBatch.collecting() && (!batchNum || canBatch.batchNum !== batchNum) ) {
 			canBatch.start();
 			timeout = setImmediate(canBatch.stop);
 		}
