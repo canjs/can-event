@@ -90,3 +90,22 @@ QUnit.asyncTest('removing an event handler, nothing called with on', 6, function
 	});
 
 });
+
+QUnit.asyncTest("async with same batch number is fired right away", function(){
+	var obj = assign({}, canEvent);
+	var secondDispatched = false;
+	var secondBatchNum;
+
+	obj.on("first", function(ev){
+		obj.dispatch({batchNum: ev.batchNum, type: "second"});
+		equal(secondBatchNum, ev.batchNum, "batch nums the same");
+		ok(secondDispatched, "dispatched event immediately");
+		QUnit.start();
+	});
+
+	obj.on("second", function(ev){
+		secondDispatched = true;
+		secondBatchNum = ev.batchNum;
+	});
+	obj.dispatch("first");
+});

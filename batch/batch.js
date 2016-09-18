@@ -6,8 +6,9 @@
 // Provides `collecting` which returns the queue collecting tasks.
 // Provides `dispatching` which returns the queue dispatching tasks.
 // Dispatches `batchEnd` when a queue's tasks have been completed.
-var canEvent = require('can-event');
-var last = require('can-util/js/last/');
+
+var canEvent = require('../can-event');
+var last = require('can-util/js/last/last');
 var namespace = require('can-util/namespace');
 
 
@@ -313,7 +314,7 @@ var canBatch = {
 					item,
 					[event, args]
 				]);
-				
+
 				(last(queues) || dispatchingQueue).callbacks.push(canBatch.stop);
 			}
 			// there are no queues, so just fire the event.
