@@ -10,6 +10,7 @@
 var canEvent = require('../can-event');
 var last = require('can-util/js/last/last');
 var namespace = require('can-util/namespace');
+var canTypes = require("can-util/js/types/types");
 
 
 // Which batch of events this is for -- might not want to send multiple
@@ -282,25 +283,25 @@ var canBatch = {
 	 *
 	 */
 	dispatch: function (event, args) {
-
 		var item = this;
 		// Don't send events if initalizing.
 		if (!item.__inSetup) {
 			event = typeof event === 'string' ? {
 				type: event
 			} : event;
+
+			// if this is trying to belong to another batch, let it fire
+			if(event.batchNum) {
+				canEvent.dispatchSync.call( item, event, args );
+			}
 			// if there's a batch, add it to this queues events
-			if(collectionQueue) {
+			else if(collectionQueue) {
 				event.batchNum = collectionQueue.number;
 				collectionQueue.tasks.push([
 					canEvent.dispatchSync,
 					item,
 					[event, args]
 				]);
-			}
-			// if this is trying to belong to another batch, let it fire
-			else if(event.batchNum) {
-				canEvent.dispatchSync.call( item, event, args );
 			}
 			// if there are queues, but this doesn't belong to a batch
 			// add it to its own batch fired at the end
@@ -319,9 +320,17 @@ var canBatch = {
 			}
 			// there are no queues, so just fire the event.
 			else {
-				canEvent.dispatchSync.call( item, event, args );
-			}
+				canBatch.start();
+				event.batchNum = collectionQueue.number;
+				collectionQueue.tasks.push([
+					canEvent.dispatchSync,
+					item,
+					[event, args]
+				]);
+				canBatch.stop();
 
+				//canEvent.dispatchSync.call( item, event, args );
+			}
 		}
 	},
 	/**
@@ -471,5 +480,7 @@ canBatch.trigger = function(){
 	console.warn("use canEvent.dispatch instead");
 	return canEvent.dispatch.apply(this, arguments);
 };
+
+canTypes.queueTask = canBatch.queue;
 
 module.exports = namespace.batch = canBatch;

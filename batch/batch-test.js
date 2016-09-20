@@ -68,3 +68,36 @@ QUnit.test("events are queued and dispatched without .stop being called (#14)", 
 	obj.dispatch("first");
 	canBatch.stop();
 });
+
+test("Everything is part of a batch", function(){
+	var obj = {};
+	assign(obj, canEvent);
+
+	obj.on("foo", function(ev){
+		ok(ev.batchNum); // There is a batch number
+	});
+
+	obj.dispatch("foo");
+});
+
+test("batch.queue callback called after events fired in the same fn", function(){
+	var obj = assign({}, canEvent);
+
+	var thirdCalled = false, firstBatch;
+	obj.on("third",function(ev){
+		firstBatch === ev.batchNum;
+		thirdCalled = true;
+	});
+
+	obj.on("first", function(ev){
+		equal(typeof ev.batchNum, "number", "got a batch number");
+		firstBatch = ev.batchNum;
+		canBatch.queue([function(){
+			equal(thirdCalled, true, "third called before this");
+		}, null, []]);
+
+		obj.dispatch({type: "third", batchNum: ev.batchNum});
+	});
+
+	obj.dispatch("first");
+});
