@@ -28,34 +28,20 @@
     "release:pre": "npm version prerelease && npm publish"
   },
   "main": "can-event",
-  "browser": {
-    "transform": [
-      "cssify"
-    ]
-  },
-  "browserify": {
-    "transform": [
-      "cssify"
-    ]
-  },
   "keywords": [
     "canjs",
     "canjs-plugin",
     "donejs"
   ],
   "system": {
-    "configDependencies": [
-      "live-reload"
-    ],
     "npmAlgorithm": "flat"
   },
   "dependencies": {
-    "can-util": "^3.0.0-pre.21"
+    "can-util": "^3.0.0-pre.52"
   },
   "devDependencies": {
     "bit-docs": "0.0.6",
     "jshint": "^2.9.1",
-    "cssify": "^1.0.2",
     "steal": "^0.16.0",
     "steal-qunit": "^0.1.1",
     "steal-tools": "^0.16.0",
