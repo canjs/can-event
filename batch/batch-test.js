@@ -85,7 +85,7 @@ test("batch.queue callback called after events fired in the same fn", function()
 
 	var thirdCalled = false, firstBatch;
 	obj.on("third",function(ev){
-		firstBatch === ev.batchNum;
+		QUnit.equal( firstBatch, ev.batchNum, "third is right");
 		thirdCalled = true;
 	});
 
@@ -100,4 +100,20 @@ test("batch.queue callback called after events fired in the same fn", function()
 	});
 
 	obj.dispatch("first");
+});
+
+
+test("afterPreviousEvents doesn't run after all collecting previous events (#17)", function(){
+	var obj = assign({}, canEvent);
+	var afterPreviousEventsFired = false;
+	obj.on("first", function(){
+		QUnit.ok(!afterPreviousEventsFired, "after previous should fire after");
+	});
+
+	canBatch.start();
+	obj.dispatch("first");
+	canBatch.afterPreviousEvents(function(){
+		afterPreviousEventsFired = true;
+	});
+	canBatch.stop();
 });

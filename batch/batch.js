@@ -369,9 +369,11 @@ var canBatch = {
 			collectionQueue.tasks.push(task);
 			(last(queues) || dispatchingQueue).callbacks.push(canBatch.stop);
 		}
-		// there are no queues, so just fire the event.
+		// there are no queues, so create one and run it.
 		else {
-			task[0].apply(task[1], task[2]);
+			canBatch.start();
+			collectionQueue.tasks.push(task);
+			canBatch.stop();
 		}
 	},
 	/**
@@ -455,13 +457,7 @@ var canBatch = {
 	// call handler after any events from currently settled stated have fired
 	// but before any future change events fire.
 	afterPreviousEvents: function(handler){
-		var queue = last(queues);
-
-		if(queue) {
-			queue.tasks.push([handler]);
-		} else {
-			handler({});
-		}
+		this.queue([handler]);
 	},
 	after: function(handler){
 		var queue = collectionQueue || dispatchingQueue;
