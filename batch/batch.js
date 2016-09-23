@@ -1,3 +1,4 @@
+"use strict";
 // # can-event/batch/
 // Adds task batching abilities to event dispatching.
 // Provides a `queue` method to add batched work.
@@ -20,6 +21,16 @@ var batchNum = 1,
 	collectionQueue = null,
 	queues = [],
 	dispatchingQueues = false;
+
+function addToCollectionQueue(item, event, args, handlers){
+	var handlerArgs = canEvent.makeHandlerArgs(event, args);
+	var tasks = handlers.map(function(handler){
+		return [handler, item, handlerArgs];
+	});
+
+	[].push.apply(collectionQueue.tasks,tasks);
+}
+
 
 var canBatch = {
 	// how many times has start been called without a stop
@@ -136,7 +147,9 @@ var canBatch = {
 			var queue = {
 				tasks: [],
 				callbacks: [],
-				number: batchNum++
+				number: batchNum++,
+				index: 0,
+				batchEnded: false
 			};
 			//queues.push(queue);
 			if (batchStopHandler) {
@@ -241,11 +254,14 @@ var canBatch = {
 
 					var i, len;
 
-					for(i = 0, len = tasks.length; i < len; i++) {
-						tasks[i][0].apply(tasks[i][1],tasks[i][2]);
+					for(len = tasks.length; queue.index < len; queue.index++) {
+						tasks[queue.index][0].apply(tasks[queue.index][1],tasks[queue.index][2]);
 					}
 
-					canEvent.dispatchSync.call(canBatch,"batchEnd",[queue.number]);
+					if(!queue.batchEnded) {
+						queue.batchEnded = true;
+						canEvent.dispatchSync.call(canBatch,"batchEnd",[queue.number]);
+					}
 
 					for(i = 0; i < callbacks.length; i++) {
 						callbacks[i]();
@@ -255,6 +271,21 @@ var canBatch = {
 
 				}
 				dispatchingQueues = false;
+			}
+		}
+	},
+	// Flushes the current
+	flush: function(){
+		var queue = canBatch.dispatching();
+		if(queue) {
+			var tasks = queue.tasks;
+			queue.index++;
+			for(var len = tasks.length; queue.index < len; queue.index++) {
+				tasks[queue.index][0].apply(tasks[queue.index][1],tasks[queue.index][2]);
+			}
+			if(!queue.batchEnded) {
+				queue.batchEnded = true;
+				canEvent.dispatchSync.call(canBatch,"batchEnd",[queue.number]);
 			}
 		}
 	},
@@ -283,53 +314,53 @@ var canBatch = {
 	 *
 	 */
 	dispatch: function (event, args) {
-		var item = this;
+		var item = this,
+			handlers;
 		// Don't send events if initalizing.
 		if (!item.__inSetup) {
 			event = typeof event === 'string' ? {
 				type: event
 			} : event;
 
-			// if this is trying to belong to another batch, let it fire
+			// If this is trying to belong to another batch, let it fire
 			if(event.batchNum) {
+				// It's a possibility we want to add this to the
+				// end of the tasks if they haven't completed yet.
 				canEvent.dispatchSync.call( item, event, args );
 			}
 			// if there's a batch, add it to this queues events
 			else if(collectionQueue) {
-				event.batchNum = collectionQueue.number;
-				collectionQueue.tasks.push([
-					canEvent.dispatchSync,
-					item,
-					[event, args]
-				]);
+
+				handlers = canEvent.handlers.call(this, event.type);
+				if(handlers) {
+					event.batchNum = collectionQueue.number;
+					addToCollectionQueue(item, event, args, handlers);
+				}
 			}
 			// if there are queues, but this doesn't belong to a batch
 			// add it to its own batch fired at the end
 			else if(queues.length || dispatchingQueue) {
 				// start a batch so it can be colllected.
 				// this should never hit in async
-				canBatch.start();
-				event.batchNum = collectionQueue.number;
-				collectionQueue.tasks.push([
-					canEvent.dispatchSync,
-					item,
-					[event, args]
-				]);
+				handlers = canEvent.handlers.call(this, event.type);
+				if(handlers) {
+					canBatch.start();
+					event.batchNum = collectionQueue.number;
+					addToCollectionQueue(item, event, args, handlers);
+					(last(queues) || dispatchingQueue).callbacks.push(canBatch.stop);
+				}
 
-				(last(queues) || dispatchingQueue).callbacks.push(canBatch.stop);
+
 			}
 			// there are no queues, so just fire the event.
 			else {
-				canBatch.start();
-				event.batchNum = collectionQueue.number;
-				collectionQueue.tasks.push([
-					canEvent.dispatchSync,
-					item,
-					[event, args]
-				]);
-				canBatch.stop();
-
-				//canEvent.dispatchSync.call( item, event, args );
+				handlers = canEvent.handlers.call(this, event.type);
+				if(handlers) {
+					canBatch.start();
+					event.batchNum = collectionQueue.number;
+					addToCollectionQueue(item, event, args, handlers);
+					canBatch.stop();
+				}
 			}
 		}
 	},
@@ -470,6 +501,8 @@ var canBatch = {
 	}
 };
 
+
+canEvent.flush = canBatch.flush;
 canEvent.dispatch = canBatch.dispatch;
 
 canBatch.trigger = function(){

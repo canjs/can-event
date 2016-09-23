@@ -204,3 +204,12 @@ test('Test events using mixin', function() {
 	other.dispatch('action');
 	equal(bindCount, 2, 'action triggered twice');
 });
+
+
+QUnit.test("makeHandlerArgs and handlers are non enumerable", 0, function(){
+	for(var prop in canEvent) {
+		if(prop === "makeHandlerArgs" || prop === "handlers" ) {
+			ok(false, prop+ " is enumerable");
+		}
+	}
+});

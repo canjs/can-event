@@ -103,7 +103,7 @@ test("batch.queue callback called after events fired in the same fn", function()
 });
 
 
-test("afterPreviousEvents doesn't run after all collecting previous events (#17)", function(){
+QUnit.test("afterPreviousEvents doesn't run after all collecting previous events (#17)", function(){
 	var obj = assign({}, canEvent);
 	var afterPreviousEventsFired = false;
 	obj.on("first", function(){
@@ -116,4 +116,42 @@ test("afterPreviousEvents doesn't run after all collecting previous events (#17)
 		afterPreviousEventsFired = true;
 	});
 	canBatch.stop();
+});
+
+
+QUnit.test("flushing works", function(){
+	var firstFired, secondFired, thirdFired;
+	var obj = assign({}, canEvent);
+
+	obj.on("first", function(){
+		canBatch.flush();
+		QUnit.ok(firstFired, "first fired");
+		QUnit.ok(secondFired, "second fired");
+		QUnit.ok(thirdFired, "third fired");
+	});
+	obj.on("first", function(){
+		firstFired = true;
+	});
+	obj.on("second", function(){
+		secondFired = true;
+	});
+	obj.on("third", function(){
+		thirdFired = true;
+	})
+	canBatch.start();
+	obj.dispatch("first");
+	obj.dispatch("second");
+	obj.dispatch("third");
+	canBatch.stop();
+
+});
+
+
+QUnit.test("flush is non enumerable", 1, function(){
+	QUnit.equal( canEvent.flush, canBatch.flush );
+	for(var prop in canEvent) {
+		if(prop === "flush") {
+			ok(false, "flush is enumerable");
+		}
+	}
 });
