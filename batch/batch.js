@@ -149,15 +149,24 @@ var canBatch = {
 		canBatch.transactions++;
 		if(canBatch.transactions === 1) {
 			var queue = {
-				tasks: [],
-				callbacks: [],
+				// the batch number
 				number: batchNum++,
+
+				// where are we in the task queue
 				index: 0,
-				callbacksIndex: 0,
+				tasks: [],
+
+				// the batch end event has fired
 				batchEnded: false,
+
+				// where are we in the post-batch queue
+				callbacksIndex: 0,
+				callbacks: [],
+
+				// if everything this batch can do has been done
 				complete: false
 			};
-			//queues.push(queue);
+
 			if (batchStopHandler) {
 				queue.callbacks.push(batchStopHandler);
 			}
@@ -270,7 +279,7 @@ var canBatch = {
 				index;
 
 			//!steal-remove-start
-			if(debug && queue.index === 0) {
+			if(debug && queue.index === 0 && queue.index < len) {
 				group("batch running "+queue.number);
 			}
 			//!steal-remove-end
