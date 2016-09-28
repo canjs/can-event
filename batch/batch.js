@@ -262,7 +262,7 @@ var canBatch = {
 		}
 	},
 	// Flushes the current
-	flush: function( primaryDepth, depth ) {
+	flush: function() {
 		//!steal-remove-start
 		var debug = canDev.logLevel >= 1;
 		//!steal-remove-end
@@ -305,7 +305,7 @@ var canBatch = {
 				}
 				//!steal-remove-end
 				queue.batchEnded = true;
-				canEvent.dispatchSync.call(canBatch,"batchEnd",[queue.number, primaryDepth, depth]);
+				canEvent.dispatchSync.call(canBatch,"batchEnd",[queue.number]);
 			}
 
 			//!steal-remove-start
