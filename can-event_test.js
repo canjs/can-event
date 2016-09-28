@@ -160,6 +160,7 @@ test('One will listen to an event once, then unbind', function() {
 	obj.one('mixin', function() {
 		mixin++;
 	});
+	
 	obj.dispatch('mixin');
 	obj.dispatch('mixin');
 	obj.dispatch('mixin');

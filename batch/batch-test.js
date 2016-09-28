@@ -119,7 +119,7 @@ QUnit.test("afterPreviousEvents doesn't run after all collecting previous events
 });
 
 
-QUnit.test("flushing works", function(){
+QUnit.test("flushing works (#18)", function(){
 	var firstFired, secondFired, thirdFired;
 	var obj = assign({}, canEvent);
 
@@ -137,7 +137,7 @@ QUnit.test("flushing works", function(){
 	});
 	obj.on("third", function(){
 		thirdFired = true;
-	})
+	});
 	canBatch.start();
 	obj.dispatch("first");
 	obj.dispatch("second");
@@ -147,11 +147,43 @@ QUnit.test("flushing works", function(){
 });
 
 
-QUnit.test("flush is non enumerable", 1, function(){
+QUnit.test("flush is non enumerable (#18)", 1, function(){
 	QUnit.equal( canEvent.flush, canBatch.flush );
 	for(var prop in canEvent) {
 		if(prop === "flush") {
 			ok(false, "flush is enumerable");
 		}
 	}
+});
+
+// The problem with the way atm is doing it ...
+// the batch is ended ... but it doesn't pick up the next item in the queue and process it.
+QUnit.test("flushing a future batch (#18)", function(){
+	var firstFired, secondFired, thirdFired;
+	var obj = assign({}, canEvent);
+
+	obj.on("first", function(){
+		canBatch.start();
+		obj.dispatch("second");
+		obj.dispatch("third");
+		canBatch.stop();
+
+		canBatch.flush();
+		QUnit.ok(firstFired, "first fired");
+		QUnit.ok(secondFired, "second fired");
+		QUnit.ok(thirdFired, "third fired");
+	});
+	obj.on("first", function(){
+		firstFired = true;
+	});
+	obj.on("second", function(){
+		secondFired = true;
+	});
+	obj.on("third", function(){
+		thirdFired = true;
+	});
+	canBatch.start();
+	obj.dispatch("first");
+	canBatch.stop();
+
 });

@@ -12,12 +12,16 @@ var canEvent = require('../can-event');
 var last = require('can-util/js/last/last');
 var namespace = require('can-util/namespace');
 var canTypes = require("can-util/js/types/types");
+var canDev = require("can-util/js/dev/dev");
 
+//!steal-remove-start
+var group = console.group && console.group.bind(console) || console.log;
+var groupEnd = console.groupEnd && console.groupEnd.bind(console) || function() {};
+//!steal-remove-end
 
 // Which batch of events this is for -- might not want to send multiple
 // messages on the same batch.  This is mostly for event delegation.
 var batchNum = 1,
-	dispatchingQueue = null,
 	collectionQueue = null,
 	queues = [],
 	dispatchingQueues = false;
@@ -149,7 +153,9 @@ var canBatch = {
 				callbacks: [],
 				number: batchNum++,
 				index: 0,
-				batchEnded: false
+				callbacksIndex: 0,
+				batchEnded: false,
+				complete: false
 			};
 			//queues.push(queue);
 			if (batchStopHandler) {
@@ -205,7 +211,7 @@ var canBatch = {
 	 * @return {can-event/batch/Queue} The queue currently executing tasks.
 	 */
 	dispatching: function(){
-		return dispatchingQueue;
+		return queues[0];
 	},
 	/**
 	 * @function can-event/batch/batch.stop stop
@@ -239,55 +245,85 @@ var canBatch = {
 			canBatch.transactions--;
 		}
 		if (canBatch.transactions === 0) {
-
-			var queue;
 			queues.push(collectionQueue);
 			collectionQueue = null;
 			if(!dispatchingQueues) {
-				collectionQueue = null;
-				dispatchingQueues = true;
-				while(queue = queues.shift()) {
-					var tasks = queue.tasks;
-					var callbacks = queue.callbacks;
-					dispatchingQueue = queue;
-					canBatch.batchNum = queue.number;
-
-					var i, len;
-
-					for(len = tasks.length; queue.index < len; queue.index++) {
-						tasks[queue.index][0].apply(tasks[queue.index][1],tasks[queue.index][2]);
-					}
-
-					if(!queue.batchEnded) {
-						queue.batchEnded = true;
-						canEvent.dispatchSync.call(canBatch,"batchEnd",[queue.number]);
-					}
-
-					for(i = 0; i < callbacks.length; i++) {
-						callbacks[i]();
-					}
-					dispatchingQueue = null;
-					canBatch.batchNum = undefined;
-
-				}
-				dispatchingQueues = false;
+				canEvent.flush();
 			}
 		}
 	},
 	// Flushes the current
-	flush: function(){
-		var queue = canBatch.dispatching();
-		if(queue) {
-			var tasks = queue.tasks;
-			queue.index++;
-			for(var len = tasks.length; queue.index < len; queue.index++) {
-				tasks[queue.index][0].apply(tasks[queue.index][1],tasks[queue.index][2]);
+	flush: function( primaryDepth, depth ) {
+		//!steal-remove-start
+		var debug = canDev.logLevel >= 1;
+		//!steal-remove-end
+
+		dispatchingQueues = true;
+		while(queues.length) {
+			var queue = queues[0];
+			var tasks = queue.tasks,
+				callbacks = queue.callbacks;
+
+			canBatch.batchNum = queue.number;
+
+			var len = tasks.length,
+				index;
+
+			//!steal-remove-start
+			if(debug && queue.index === 0) {
+				group("batch running "+queue.number);
 			}
+			//!steal-remove-end
+
+			while(queue.index < len) {
+				index = queue.index++;
+				//!steal-remove-start
+				if(debug) {
+					var context = tasks[index][1];
+					var args = tasks[index][2];
+					if(args && args[0]) {
+						console.log("dispatching",args[0].type, "on",context);
+					}
+				}
+				//!steal-remove-end
+				tasks[index][0].apply(tasks[index][1],tasks[index][2]);
+			}
+
 			if(!queue.batchEnded) {
+				//!steal-remove-start
+				if(debug) {
+					console.log("tasks ended");
+				}
+				//!steal-remove-end
 				queue.batchEnded = true;
-				canEvent.dispatchSync.call(canBatch,"batchEnd",[queue.number]);
+				canEvent.dispatchSync.call(canBatch,"batchEnd",[queue.number, primaryDepth, depth]);
 			}
+
+			//!steal-remove-start
+			if(debug && queue.callbacksIndex < callbacks.length) {
+				console.log("calling callbacks");
+			}
+			//!steal-remove-end
+
+			while(queue.callbacksIndex < callbacks.length) {
+				callbacks[queue.callbacksIndex++]();
+			}
+
+
+			if(!queue.complete) {
+				queue.complete = true;
+				canBatch.batchNum = undefined;
+				queues.shift();
+
+				//!steal-remove-start
+				if(debug) {
+					groupEnd();
+				}
+				//!steal-remove-end
+			}
+
 		}
+		dispatchingQueues = false;
 	},
 	/**
 	 * @function can-event/batch/batch.dispatch dispatch
@@ -339,7 +375,7 @@ var canBatch = {
 			}
 			// if there are queues, but this doesn't belong to a batch
 			// add it to its own batch fired at the end
-			else if(queues.length || dispatchingQueue) {
+			else if(queues.length) {
 				// start a batch so it can be colllected.
 				// this should never hit in async
 				handlers = canEvent.handlers.call(this, event.type);
@@ -347,7 +383,7 @@ var canBatch = {
 					canBatch.start();
 					event.batchNum = collectionQueue.number;
 					addToCollectionQueue(item, event, args, handlers);
-					(last(queues) || dispatchingQueue).callbacks.push(canBatch.stop);
+					last(queues).callbacks.push(canBatch.stop);
 				}
 
 
@@ -389,16 +425,20 @@ var canBatch = {
 	 * function to be called, the context the function should be called with, and
 	 * the arguments to the function like: `[function,context, [arg1, arg2]]`
 	 */
-	queue: function(task){
+	queue: function(task, inCurrentBatch){
 		if(collectionQueue) {
 			collectionQueue.tasks.push(task);
 		}
 		// if there are queues, but this doesn't belong to a batch
 		// add it to its own batch
-		else if(queues.length  || dispatchingQueue) {
-			canBatch.start();
-			collectionQueue.tasks.push(task);
-			(last(queues) || dispatchingQueue).callbacks.push(canBatch.stop);
+		else if(queues.length) {
+			if(inCurrentBatch && queues[0].index < queues.tasks.length) {
+				queues[0].tasks.push(task);
+			} else {
+				canBatch.start();
+				collectionQueue.tasks.push(task);
+				last(queues).callbacks.push(canBatch.stop);
+			}
 		}
 		// there are no queues, so create one and run it.
 		else {
@@ -406,6 +446,9 @@ var canBatch = {
 			collectionQueue.tasks.push(task);
 			canBatch.stop();
 		}
+	},
+	queues: function(){
+		return queues;
 	},
 	/**
 	 * @function can-event/batch/batch.afterPreviousEvents afterPreviousEvents
@@ -491,7 +534,7 @@ var canBatch = {
 		this.queue([handler]);
 	},
 	after: function(handler){
-		var queue = collectionQueue || dispatchingQueue;
+		var queue = collectionQueue || queues[0];
 
 		if(queue) {
 			queue.callbacks.push(handler);
