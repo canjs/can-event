@@ -57,10 +57,7 @@ var canEvent = {
     		eventList = allEvents[event] || (allEvents[event] = []);
 
     	// Add the event
-    	eventList.push({
-    		handler: handler,
-    		name: event
-    	});
+    	eventList.push(handler);
     	return this;
     },
 
@@ -77,29 +74,26 @@ var canEvent = {
      *
      * @param {String} event The name of the event to listen for.
      * @param {Function} handler The handler that will be executed to handle the event.
-     * @param {Function} [__validate] An extra function that can validate an
-		 * event handler as a match. This is an internal parameter and only used
-     * for can-event plugins.
      * @return {Object} this
      *
      * @signature `canEvent.removeEventListener.call(obj, event, handler)`
      *
      * This syntax can be used for objects that don't include the [can-event] mixin.
      */
-    removeEventListener: function (event, fn, __validate) {
+    removeEventListener: function (event, fn) {
     	if (!this.__bindEvents) {
     		return this;
     	}
-    	var events = this.__bindEvents[event] || [],
+    	var handlers = this.__bindEvents[event] || [],
     		i = 0,
-    		ev, isFunction = typeof fn === 'function';
-    	while (i < events.length) {
-    		ev = events[i];
+    		handler, isFunction = typeof fn === 'function';
+    	while (i < handlers.length) {
+    		handler = handlers[i];
     		// Determine whether this event handler is "equivalent" to the one requested
     		// Generally this requires the same event/function, but a validation function
     		// can be included for extra conditions. This is used in some plugins like `can/event/namespace`.
-    		if (__validate ? __validate(ev, event, fn) : isFunction && ev.handler === fn || !isFunction && (ev.cid === fn || !fn)) {
-    			events.splice(i, 1);
+    		if ( isFunction && handler === fn || !isFunction && (handler.cid === fn || !fn)) {
+    			handlers.splice(i, 1);
     		} else {
     			i++;
     		}
@@ -138,44 +132,19 @@ var canEvent = {
      * This syntax can be used for objects that don't include the `can.event` mixin.
      */
     dispatchSync: function (event, args) {
-    	var events = this.__bindEvents;
-    	if (!events) {
-    		return;
-    	}
-    	var eventName;
-    	// Initialize the event object
-    	if (typeof event === 'string') {
-    		eventName = event;
-    		event = {
-    			type: event
-    		};
-    	} else {
-    		eventName = event.type;
-    	}
+        var handlerArgs = canEvent.makeHandlerArgs(event, args);
+        var handlers = canEvent.handlers.call(this, handlerArgs[0].type);
 
-    	// Grab event listeners
-    	var handlers = events[eventName];
     	if(!handlers) {
     		return;
-    	} else {
-    		handlers = handlers.slice(0);
     	}
 
-
-    	var passed = [event];
-
-    	// Execute handlers listening for this event.
-    	if(args) {
-    		passed.push.apply(passed, args);
+        for (var i = 0, len = handlers.length; i < len; i++) {
+    		handlers[i].apply(this, handlerArgs);
     	}
 
-    	for (var i = 0, len = handlers.length; i < len; i++) {
-    		handlers[i].handler.apply(this, passed);
-    	}
-
-    	return event;
+    	return handlerArgs[0];
     },
-
 	// Define abstract helpers
 
     /**
@@ -472,5 +441,43 @@ canEvent.delegate = canEvent.on;
 canEvent.undelegate = canEvent.off;
 
 canEvent.dispatch = canEvent.dispatchSync;
+
+Object.defineProperty(canEvent, "makeHandlerArgs",{
+    enumerable: false,
+    value: function(event, args) {
+        if (typeof event === 'string') {
+            event = {
+                type: event
+            };
+        }
+        var handlerArgs = [event];
+
+        // Execute handlers listening for this event.
+        if(args) {
+            handlerArgs.push.apply(handlerArgs, args);
+        }
+        return handlerArgs;
+    }
+});
+Object.defineProperty(canEvent,"handlers", {
+    enumerable: false,
+    value: function(eventName){
+        var events = this.__bindEvents;
+        if (!events) {
+            return;
+        }
+        var handlers = events[eventName];
+        if(!handlers) {
+            return;
+        } else {
+            return handlers.slice(0);
+        }
+    }
+});
+Object.defineProperty(canEvent,"flush", {
+    enumerable: false,
+    writable: true,
+    value: function(){}
+});
 
 module.exports = namespace.event = canEvent;

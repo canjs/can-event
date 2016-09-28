@@ -14,8 +14,7 @@ var clearImmediate = GLOBAL.clearImmediate || GLOBAL.clearTimeout;
 
 var syncBatchDispatch = canBatch.dispatch;
 var syncBatchQueue = canBatch.queue;
-var syncAddEventListener =  canEvent.addEventListener;
-var syncRemoveEventListener =  canEvent.removeEventListener;
+var syncBatchFlush = canBatch.flush;
 
 var asyncMethods = {
 	/**
@@ -71,60 +70,24 @@ var asyncMethods = {
 		return syncBatchQueue.apply(this, arguments);
 	},
 	/**
-     * @function can-event/async/async.addEventListener addEventListener
+	 * @function can-event/async/async.flush flush
      * @parent can-event/async/async
      *
-     * @signature `async.addEventListener.call(target, event, handler)`
-     *
-     * Add a event listener to an object asynchronously in the next queued
-     * batch of tasks to run. This function replaces [can-event.addEventListener]
-     * if [can-event/async/async.async] is called.
+	 * @signature `async.flush()`
 	 *
-	 * ```js
-	 * var canEvent = require("can-event");
-	 * var canAsync = require("can-event/async/async");
-	 * canAsync.async();
-	 *
-	 * var obj = {};
-	 * Object.assign(obj, canEvent);
-	 *
-	 * obj.addEventListener("foo", function(){
-	 *   console.log("heard foo");
-	 * });
-	 * obj.dispatch("foo");
-	 * console.log("dispatched foo");
-	 *
-	 * // Logs -> "dispatched foo" then "heard foo"
-	 * ```
-	 *
-     * @param {Object} target An object which produces events.
-     * @param {String} event The name of the event to listen for.
-     * @param {Function} handler The handler that will be executed to handle the event.
-     * @return {Object} The target.
-     */
-	addEventListener: function(){
-		asyncMethods.queue([syncAddEventListener, this, arguments]);
-		return this;
-	},
-	/**
-     * @function can-event/async/async.removeEventListener removeEventListener
-     * @parent can-event/async/async
-     * @signature `async.removeEventListener.call(target, event, handler)`
-     *
-     * Removes an event handler asynchronously.
-     *
-     * @param {Object} target An object which produces events.
-     * @param {String} event The name of the event to listen for.
-     * @param {Function} handler The handler that will be executed to handle the event.
-     * @return {Object} The target.
-     */
-	removeEventListener: function(){
-		asyncMethods.queue([syncRemoveEventListener, this, arguments]);
-		return this;
+	 * Flushes the task queue immediately so all events or other tasks
+	 * will be immediately invoked.
+	 */
+	flush: function(){
+		if(isAsync && canBatch.collecting() ) {
+			clearImmediate(timeout);
+			canBatch.stop();
+		}
+		canBatch.flush();
 	}
 };
 
-var syncMethods = assign({},canEvent);
+var syncMethods = assign({flush: syncBatchFlush},canEvent);
 
 var isAsync = false;
 var eventAsync = {
@@ -155,21 +118,6 @@ var eventAsync = {
 		}
 		assign(canEvent, syncMethods);
 		isAsync = false;
-	},
-	/**
-	 * @function can-event/async/async.flush flush
-     * @parent can-event/async/async
-     *
-	 * @signature `async.flush()`
-	 *
-	 * Flushes the task queue immediately so all events or other tasks
-	 * will be immediately invoked.
-	 */
-	flush: function(){
-		if(isAsync && canBatch.collecting() ) {
-			clearImmediate(timeout);
-			canBatch.stop();
-		}
 	}
 };
 

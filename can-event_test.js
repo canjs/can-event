@@ -160,6 +160,7 @@ test('One will listen to an event once, then unbind', function() {
 	obj.one('mixin', function() {
 		mixin++;
 	});
+	
 	obj.dispatch('mixin');
 	obj.dispatch('mixin');
 	obj.dispatch('mixin');
@@ -203,4 +204,13 @@ test('Test events using mixin', function() {
 	obj.stopListening(other, 'action', fn);
 	other.dispatch('action');
 	equal(bindCount, 2, 'action triggered twice');
+});
+
+
+QUnit.test("makeHandlerArgs and handlers are non enumerable", 0, function(){
+	for(var prop in canEvent) {
+		if(prop === "makeHandlerArgs" || prop === "handlers" ) {
+			ok(false, prop+ " is enumerable");
+		}
+	}
 });
