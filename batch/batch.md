@@ -85,7 +85,7 @@ var Todo = DefineMap.extend({
 });
 
 var TodoList = DefineList.extend({
-	"*": Todo,
+	"#": Todo,
 	completeAll: function(){
 		this.forEach(function(todo){
 			todo.complete = true;

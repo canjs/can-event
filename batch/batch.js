@@ -119,7 +119,7 @@ var canBatch = {
 	 * });
 	 *
 	 * Todo.List = DefineList.extend({
-	 *   "*": Todo,
+	 *   "#": Todo,
 	 *   completeAll: function(){
 	 *     this.forEach(function(todo){
 	 *       todo.complete();
