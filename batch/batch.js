@@ -24,13 +24,16 @@ var groupEnd = console.groupEnd && console.groupEnd.bind(console) || function() 
 var batchNum = 1,
 	collectionQueue = null,
 	queues = [],
-	dispatchingQueues = false;
+	dispatchingQueues = false,
+	makeHandlerArgs = canEvent.makeHandlerArgs,
+	getHandlers = canEvent.handlers;
 
 function addToCollectionQueue(item, event, args, handlers){
-	var handlerArgs = canEvent.makeHandlerArgs(event, args);
-	var tasks = handlers.map(function(handler){
-		return [handler, item, handlerArgs];
-	});
+	var handlerArgs = makeHandlerArgs(event, args);
+	var tasks = [];
+	for(var i = 0, len = handlers.length; i < len; i++) {
+		tasks[i] = [handlers[i], item, handlerArgs];
+	}
 
 	[].push.apply(collectionQueue.tasks,tasks);
 }
@@ -376,7 +379,7 @@ var canBatch = {
 			// if there's a batch, add it to this queues events
 			else if(collectionQueue) {
 
-				handlers = canEvent.handlers.call(this, event.type);
+				handlers = getHandlers.call(this, event.type);
 				if(handlers) {
 					event.batchNum = collectionQueue.number;
 					addToCollectionQueue(item, event, args, handlers);
@@ -387,7 +390,7 @@ var canBatch = {
 			else if(queues.length) {
 				// start a batch so it can be colllected.
 				// this should never hit in async
-				handlers = canEvent.handlers.call(this, event.type);
+				handlers = getHandlers.call(this, event.type);
 				if(handlers) {
 					canBatch.start();
 					event.batchNum = collectionQueue.number;
@@ -399,7 +402,7 @@ var canBatch = {
 			}
 			// there are no queues, so just fire the event.
 			else {
-				handlers = canEvent.handlers.call(this, event.type);
+				handlers = getHandlers.call(this, event.type);
 				if(handlers) {
 					canBatch.start();
 					event.batchNum = collectionQueue.number;

@@ -17,6 +17,34 @@ var domDispatch = require('can-util/dom/dispatch/dispatch');
 var namespace = require('can-util/namespace');
 require('can-util/dom/events/delegate/delegate');
 
+function makeHandlerArgs(event, args) {
+    if (typeof event === 'string') {
+        event = {
+            type: event
+        };
+    }
+    var handlerArgs = [event];
+
+    // Execute handlers listening for this event.
+    if(args) {
+        handlerArgs.push.apply(handlerArgs, args);
+    }
+    return handlerArgs;
+}
+function getHandlers(eventName){
+    var events = this.__bindEvents;
+    if (!events) {
+        return;
+    }
+    var handlers = events[eventName];
+    if(!handlers) {
+        return;
+    } else {
+        return handlers;
+    }
+}
+
+
 // ## can.event
 // Create and export the `can.event` mixin
 var canEvent = {
@@ -132,13 +160,13 @@ var canEvent = {
      * This syntax can be used for objects that don't include the `can.event` mixin.
      */
     dispatchSync: function (event, args) {
-        var handlerArgs = canEvent.makeHandlerArgs(event, args);
-        var handlers = canEvent.handlers.call(this, handlerArgs[0].type);
+        var handlerArgs = makeHandlerArgs(event, args);
+        var handlers = getHandlers.call(this, handlerArgs[0].type);
 
     	if(!handlers) {
     		return;
     	}
-
+        handlers = handlers.slice(0);
         for (var i = 0, len = handlers.length; i < len; i++) {
     		handlers[i].apply(this, handlerArgs);
     	}
@@ -442,37 +470,16 @@ canEvent.undelegate = canEvent.off;
 
 canEvent.dispatch = canEvent.dispatchSync;
 
+
+
 Object.defineProperty(canEvent, "makeHandlerArgs",{
     enumerable: false,
-    value: function(event, args) {
-        if (typeof event === 'string') {
-            event = {
-                type: event
-            };
-        }
-        var handlerArgs = [event];
-
-        // Execute handlers listening for this event.
-        if(args) {
-            handlerArgs.push.apply(handlerArgs, args);
-        }
-        return handlerArgs;
-    }
+    value: makeHandlerArgs
 });
+
 Object.defineProperty(canEvent,"handlers", {
     enumerable: false,
-    value: function(eventName){
-        var events = this.__bindEvents;
-        if (!events) {
-            return;
-        }
-        var handlers = events[eventName];
-        if(!handlers) {
-            return;
-        } else {
-            return handlers.slice(0);
-        }
-    }
+    value: getHandlers
 });
 Object.defineProperty(canEvent,"flush", {
     enumerable: false,
