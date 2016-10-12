@@ -4,6 +4,7 @@
 @link ../docco/event.html docco
 @group can-event.static static
 @release 2.1
+@package ./package.json
 
 @description
 
