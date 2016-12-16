@@ -10,8 +10,8 @@
 
 var canEvent = require('../can-event');
 var last = require('can-util/js/last/last');
-var namespace = require('can-util/namespace');
-var canTypes = require("can-util/js/types/types");
+var namespace = require('can-namespace');
+var canTypes = require("can-types");
 var canDev = require("can-util/js/dev/dev");
 
 //!steal-remove-start
