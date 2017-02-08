@@ -9,10 +9,13 @@ var canEvent = require('can-event');
  */
 	// ## Bind helpers
 
-module.exports = {
-	addAndSetup: function () {
+var lifecycle = function(prototype) {
+	var baseAddEventListener = prototype.addEventListener;
+	var baseRemoveEventListener = prototype.removeEventListener;
+
+	prototype.addEventListener = function () {
 		// Add the event to this object
-		canEvent.addEventListener.apply(this, arguments);
+		var ret = baseAddEventListener.apply(this, arguments);
 		// If not initializing, and the first binding
 		// call bindsetup if the function exists.
 		if (!this.__inSetup) {
@@ -26,9 +29,10 @@ module.exports = {
 				this._bindings++;
 			}
 		}
-		return this;
-	},
-	removeAndTeardown: function (event, handler) {
+		return ret;
+	};
+
+	prototype.removeEventListener = function (event, handler) {
 		if (!this.__bindEvents) {
 			return this;
 		}
@@ -37,7 +41,7 @@ module.exports = {
 		var handlerCount = handlers.length;
 
 		// Remove the event handler
-		canEvent.removeEventListener.apply(this, arguments);
+		var ret = baseRemoveEventListener.apply(this, arguments);
 		if (this._bindings === null) {
 			this._bindings = 0;
 		} else {
@@ -50,6 +54,18 @@ module.exports = {
 		if (!this._bindings && this._eventTeardown) {
 			this._eventTeardown();
 		}
-		return this;
-	}
+		return ret;
+	};
+
+	return prototype;
 };
+
+var baseEvents = lifecycle({
+	addEventListener: canEvent.addEventListener,
+	removeEventListener: canEvent.removeEventListener
+});
+
+lifecycle.addAndSetup = baseEvents.addEventListener;
+lifecycle.removeAndTeardown = baseEvents.removeEventListener;
+
+module.exports = lifecycle;
