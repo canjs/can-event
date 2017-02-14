@@ -4,6 +4,7 @@ var assign = require('can-util/js/assign/');
 require('can-util/dom/events/delegate/');
 require("can-event/batch/batch-test");
 require("can-event/async/async-test");
+require("can-event/lifecycle/lifecycle-test");
 
 QUnit.module('can-event');
 
@@ -160,7 +161,7 @@ test('One will listen to an event once, then unbind', function() {
 	obj.one('mixin', function() {
 		mixin++;
 	});
-	
+
 	obj.dispatch('mixin');
 	obj.dispatch('mixin');
 	obj.dispatch('mixin');
