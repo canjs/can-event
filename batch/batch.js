@@ -13,9 +13,10 @@ var last = require('can-util/js/last/last');
 var namespace = require('can-namespace');
 var canTypes = require("can-types");
 var canDev = require("can-util/js/dev/dev");
+var canLog = require("can-util/js/log/log");
 
 //!steal-remove-start
-var group = console.group && console.group.bind(console) || console.log;
+var group = console.group && console.group.bind(console) || canLog.log;
 var groupEnd = console.groupEnd && console.groupEnd.bind(console) || function() {};
 //!steal-remove-end
 
@@ -294,7 +295,7 @@ var canBatch = {
 					var context = tasks[index][1];
 					var args = tasks[index][2];
 					if(args && args[0]) {
-						console.log("dispatching",args[0].type, "on",context);
+						canLog.log("dispatching",args[0].type, "on",context);
 					}
 				}
 				//!steal-remove-end
@@ -304,7 +305,7 @@ var canBatch = {
 			if(!queue.batchEnded) {
 				//!steal-remove-start
 				if(debug) {
-					console.log("tasks ended");
+					canLog.log("tasks ended");
 				}
 				//!steal-remove-end
 				queue.batchEnded = true;
@@ -313,7 +314,7 @@ var canBatch = {
 
 			//!steal-remove-start
 			if(debug && queue.callbacksIndex < callbacks.length) {
-				console.log("calling callbacks");
+				canLog.log("calling callbacks");
 			}
 			//!steal-remove-end
 
@@ -561,7 +562,7 @@ canEvent.flush = canBatch.flush;
 canEvent.dispatch = canBatch.dispatch;
 
 canBatch.trigger = function(){
-	console.warn("use canEvent.dispatch instead");
+	canLog.warn("use canEvent.dispatch instead");
 	return canEvent.dispatch.apply(this, arguments);
 };
 
