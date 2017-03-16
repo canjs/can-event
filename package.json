@@ -50,7 +50,7 @@
     "steal-tools": "^1.0.0",
     "testee": "^0.3.0",
     "generator-donejs": "^0.9.0",
-    "donejs-cli": "^0.9.5",
+    "donejs-cli": "^1.0.0",
     "done-serve": "^0.2.4"
   },
   "bit-docs": {
