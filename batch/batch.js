@@ -375,6 +375,7 @@ var canBatch = {
 			if(event.batchNum) {
 				// It's a possibility we want to add this to the
 				// end of the tasks if they haven't completed yet.
+				canBatch.batchNum = event.batchNum;
 				canEvent.dispatchSync.call( item, event, args );
 			}
 			// if there's a batch, add it to this queues events
