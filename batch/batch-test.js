@@ -187,3 +187,24 @@ QUnit.test("flushing a future batch (#18)", function(){
 	canBatch.stop();
 
 });
+
+QUnit.test("batchNumber is set by .dispatch that has a batchNum",function(){
+	var obj = assign({}, canEvent);
+	var firstBN;
+	obj.on("first", function(ev){
+		firstBN =ev.batchNum;
+		canEvent.flush();
+		obj.dispatch({type: "second", batchNum: ev.batchNum});
+
+
+	});
+	obj.on("second", function(ev){
+
+		QUnit.equal(firstBN,ev.batchNum,"batch num set");
+		QUnit.equal(canBatch.batchNum,ev.batchNum,"batch num set");
+	});
+
+	canBatch.start();
+	obj.dispatch("first");
+	canBatch.stop();
+});
