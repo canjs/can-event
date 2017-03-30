@@ -569,4 +569,8 @@ canBatch.trigger = function(){
 
 canTypes.queueTask = canBatch.queue;
 
-module.exports = namespace.batch = canBatch;
+if (namespace.batch) {
+	throw new Error("You can't have two versions of can-event/batch/batch, check your dependencies");
+} else {
+	module.exports = namespace.batch = canBatch;
+}
