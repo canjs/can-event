@@ -89,7 +89,6 @@ test('listenTo and stopListening', 9, function () {
 		ok(true, 'child 2 foo handler with id called');
 	});
 
-
 	canEvent.trigger.call(child1, 'change');
 	canEvent.trigger.call(child1, 'foo');
 	canEvent.trigger.call(child2, 'change');
