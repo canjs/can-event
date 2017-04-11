@@ -9,30 +9,43 @@ var canEvent = require('can-event');
  */
 	// ## Bind helpers
 
+function defaultIncrement(count) {
+	this._bindings = (this._bindings || 0) + count;
+}
+function defaultDecrement(count) {
+	this._bindings = Math.max((this._bindings || 0) - count, 0);
+}
 var lifecycle = function(prototype) {
 	var baseAddEventListener = prototype.addEventListener;
 	var baseRemoveEventListener = prototype.removeEventListener;
 
 	prototype.addEventListener = function () {
+		var increment = typeof this._incrementBindings === "function" ?
+			this._incrementBindings.bind(this) :
+			defaultIncrement.bind(this);
 		// Add the event to this object
 		var ret = baseAddEventListener.apply(this, arguments);
 		// If not initializing, and the first binding
 		// call bindsetup if the function exists.
 		if (!this.__inSetup) {
 			if (!this._bindings) {
-				this._bindings = 1;
+				increment(1);
 				// setup live-binding
 				if (this._eventSetup) {
 					this._eventSetup();
 				}
 			} else {
-				this._bindings++;
+				increment(1);
 			}
 		}
 		return ret;
 	};
 
 	prototype.removeEventListener = function (event, handler) {
+		var decrement = typeof this._decrementBindings === "function" ?
+			this._decrementBindings.bind(this) :
+			defaultDecrement.bind(this);
+
 		if (!this.__bindEvents) {
 			return this;
 		}
@@ -43,11 +56,11 @@ var lifecycle = function(prototype) {
 		// Remove the event handler
 		var ret = baseRemoveEventListener.apply(this, arguments);
 		if (this._bindings === null) {
-			this._bindings = 0;
+			decrement(0);
 		} else {
 			// Subtract the difference in the number of handlers bound to this
 			// event before/after removeEvent
-			this._bindings = this._bindings - (handlerCount - handlers.length);
+			decrement(handlerCount - handlers.length);
 		}
 		// If there are no longer any bindings and
 		// there is a bindteardown method, call it.
