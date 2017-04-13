@@ -19,14 +19,15 @@ var lifecycle = function(prototype) {
 		// If not initializing, and the first binding
 		// call bindsetup if the function exists.
 		if (!this.__inSetup) {
-			if (!this._bindings) {
-				this._bindings = 1;
+			this.__bindEvents = this.__bindEvents || {};
+			if (!this.__bindEvents._lifecycleBindings) {
+				this.__bindEvents._lifecycleBindings = 1;
 				// setup live-binding
 				if (this._eventSetup) {
 					this._eventSetup();
 				}
 			} else {
-				this._bindings++;
+				this.__bindEvents._lifecycleBindings++;
 			}
 		}
 		return ret;
@@ -42,16 +43,16 @@ var lifecycle = function(prototype) {
 
 		// Remove the event handler
 		var ret = baseRemoveEventListener.apply(this, arguments);
-		if (this._bindings === null) {
-			this._bindings = 0;
+		if (this.__bindEvents._lifecycleBindings === null) {
+			this.__bindEvents._lifecycleBindings = 0;
 		} else {
 			// Subtract the difference in the number of handlers bound to this
 			// event before/after removeEvent
-			this._bindings = this._bindings - (handlerCount - handlers.length);
+			this.__bindEvents._lifecycleBindings -= (handlerCount - handlers.length);
 		}
 		// If there are no longer any bindings and
 		// there is a bindteardown method, call it.
-		if (!this._bindings && this._eventTeardown) {
+		if (!this.__bindEvents._lifecycleBindings && this._eventTeardown) {
 			this._eventTeardown();
 		}
 		return ret;
