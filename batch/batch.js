@@ -279,8 +279,7 @@ var canBatch = {
 
 			canBatch.batchNum = queue.number;
 
-			var len = tasks.length,
-				index;
+			var len = tasks.length;
 
 			//!steal-remove-start
 			if(debug && queue.index === 0 && queue.index < len) {
@@ -289,17 +288,17 @@ var canBatch = {
 			//!steal-remove-end
 
 			while(queue.index < len) {
-				index = queue.index++;
+				var task = tasks[queue.index++];
 				//!steal-remove-start
 				if(debug) {
-					var context = tasks[index][1];
-					var args = tasks[index][2];
+					var context = task[1];
+					var args = task[2];
 					if(args && args[0]) {
-						canLog.log("dispatching",args[0].type, "on",context);
+						canLog.log("dispatching", args[0].type, "on", context);
 					}
 				}
 				//!steal-remove-end
-				tasks[index][0].apply(tasks[index][1],tasks[index][2]);
+				task[0].apply(task[1], task[2]);
 			}
 
 			if(!queue.batchEnded) {

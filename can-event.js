@@ -31,19 +31,14 @@ function makeHandlerArgs(event, args) {
     }
     return handlerArgs;
 }
+
 function getHandlers(eventName){
     var events = this.__bindEvents;
     if (!events) {
         return;
     }
-    var handlers = events[eventName];
-    if(!handlers) {
-        return;
-    } else {
-        return handlers;
-    }
+    return events[eventName];
 }
-
 
 // ## can.event
 // Create and export the `can.event` mixin
