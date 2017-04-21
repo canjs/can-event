@@ -362,6 +362,18 @@ var canBatch = {
 	 *
 	 */
 	dispatch: function (event, args) {
+		//!steal-remove-start
+		if (arguments.length > 2) {
+			canDev.warn('Arguments to dispatch should be an array, not multiple arguments.');
+			args = Array.prototype.slice.call(arguments, 1);
+		}
+
+		if (args && !Array.isArray(args)) {
+			canDev.warn('Arguments to dispatch should be an array.');
+			args = [ args ];
+		}
+		//!steal-remove-end
+
 		var item = this,
 			handlers;
 		// Don't send events if initalizing.
