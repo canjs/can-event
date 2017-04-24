@@ -211,32 +211,51 @@ QUnit.test("batchNumber is set by .dispatch that has a batchNum",function(){
 
 QUnit.test("debounce - basics (#3)", function() {
 	var obj = assign({}, canEvent);
-	obj.on("event", canBatch.debounce(function() {
+	obj.on("event", canBatch.debounce(function(event, arg1, arg2) {
 		ok(true, "event run");
+		equal(arg1, 3);
+		equal(arg2, 4);
 	}));
 
-	expect(1);
+	expect(3);
 	canBatch.start();
-	obj.dispatch("event");
-	obj.dispatch("event");
+	obj.dispatch("event", [ 1, 2 ]);
+	obj.dispatch("event", [ 3, 4 ]);
 	canBatch.stop();
+});
+
+QUnit.test("debounce - is not inherited", function() {
+	var obj = assign({}, canEvent);
+	ok(!obj.debounce);
 });
 
 QUnit.test("debounce - handles multiple batches", function() {
 	var obj = assign({}, canEvent);
-	obj.on("event", canBatch.debounce(function() {
+
+	var count = 0;
+	obj.on("event", canBatch.debounce(function(event, arg1, arg2) {
 		ok(true, "event run");
+
+		count++;
+		if (count === 1) {
+			equal(arg1, 7);
+			equal(arg2, 8);
+		}
+		if (count === 2) {
+			equal(arg1, 10);
+			equal(arg2, 11);
+		}
 	}));
 
-	expect(2);
+	expect(6);
 	canBatch.start();
-	obj.dispatch("event");
-	obj.dispatch("event");
+	obj.dispatch("event", [ 5, 6 ]);
+	obj.dispatch("event", [ 7, 8 ]);
 	canBatch.stop();
 
 	canBatch.start();
-	obj.dispatch("event");
-	obj.dispatch("event");
+	obj.dispatch("event", [ 9, 0 ]);
+	obj.dispatch("event", [ 10, 11 ]);
 	canBatch.stop();
 });
 

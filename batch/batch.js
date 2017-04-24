@@ -554,10 +554,14 @@ var canBatch = {
 		} else {
 			handler({});
 		}
-	},
-	/**
-	*/
-	debounce: function(handler){
+	}
+};
+
+/**
+*/
+Object.defineProperty(canBatch, 'debounce', {
+	enumerable: false,
+	value: function(handler) {
 		var that = null;
 		var args = null;
 
@@ -566,7 +570,7 @@ var canBatch = {
 				return;
 			}
 
-			handler.call(that, args);
+			handler.apply(that, args);
 			that = null;
 			args = null;
 		});
@@ -577,7 +581,7 @@ var canBatch = {
 			args = arguments;
 		};
 	}
-};
+});
 
 
 canEvent.flush = canBatch.flush;
