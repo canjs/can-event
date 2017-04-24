@@ -558,7 +558,16 @@ var canBatch = {
 };
 
 /**
-*/
+ * @function can-event/batch/batch.debounce debounce
+ * @parent can-event/batch/batch
+ * @description Provides a debounced event listener
+ * @signature `canBatch.debounce(handler)`
+ *
+ * Makes sure an event handler function is only run once per batch.
+ *
+ * @param {Function} handler The handler that will be executed to handle the event.
+ * @return {Function} The debounced function
+ */
 Object.defineProperty(canBatch, 'debounce', {
 	enumerable: false,
 	value: function(handler) {
