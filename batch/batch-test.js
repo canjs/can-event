@@ -208,3 +208,52 @@ QUnit.test("batchNumber is set by .dispatch that has a batchNum",function(){
 	obj.dispatch("first");
 	canBatch.stop();
 });
+
+QUnit.test("debounce - basics (#3)", function() {
+	var obj = assign({}, canEvent);
+	obj.on("event", canBatch.debounce(function() {
+		ok(true, "event run");
+	}));
+
+	expect(1);
+	canBatch.start();
+	obj.dispatch("event");
+	obj.dispatch("event");
+	canBatch.stop();
+});
+
+QUnit.test("debounce - handles multiple batches", function() {
+	var obj = assign({}, canEvent);
+	obj.on("event", canBatch.debounce(function() {
+		ok(true, "event run");
+	}));
+
+	expect(2);
+	canBatch.start();
+	obj.dispatch("event");
+	obj.dispatch("event");
+	canBatch.stop();
+
+	canBatch.start();
+	obj.dispatch("event");
+	obj.dispatch("event");
+	canBatch.stop();
+});
+
+QUnit.test("debounce - only triggers if event was triggered", function() {
+	var obj = assign({}, canEvent);
+	obj.on("event", canBatch.debounce(function() {
+		ok(true, "event run");
+	}));
+
+	expect(1);
+	canBatch.start();
+	obj.dispatch("event");
+	obj.dispatch("event");
+	canBatch.stop();
+
+	canBatch.start();
+	obj.dispatch("foo");
+	obj.dispatch("foo");
+	canBatch.stop();
+});

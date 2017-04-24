@@ -554,6 +554,28 @@ var canBatch = {
 		} else {
 			handler({});
 		}
+	},
+	/**
+	*/
+	debounce: function(handler){
+		var that = null;
+		var args = null;
+
+		canEvent.addEventListener.call(canBatch, "batchEnd", function() {
+			if (!that) {
+				return;
+			}
+
+			handler.call(that, args);
+			that = null;
+			args = null;
+		});
+
+
+		return function() {
+			that = this;
+			args = arguments;
+		};
 	}
 };
 
