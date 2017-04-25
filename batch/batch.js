@@ -574,18 +574,17 @@ Object.defineProperty(canBatch, 'debounce', {
 		var that = null;
 		var args = null;
 
-		canEvent.addEventListener.call(canBatch, "batchEnd", function() {
+		return function() {
 			if (!that) {
-				return;
+				canEvent.addEventListener.call(canBatch, "batchEnd", function listener() {
+					canEvent.removeEventListener.call(canBatch, "batchEnd");
+
+					handler.apply(that, args);
+					that = null;
+					args = null;
+				});
 			}
 
-			handler.apply(that, args);
-			that = null;
-			args = null;
-		});
-
-
-		return function() {
 			that = this;
 			args = arguments;
 		};
