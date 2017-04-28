@@ -1,6 +1,7 @@
 var canEvent = require('can-event');
 var QUnit = require('steal-qunit');
 var assign = require('can-util/js/assign/');
+var canDev = require("can-util/js/dev/dev");
 require('can-util/dom/events/delegate/');
 require("can-event/batch/batch-test");
 require("can-event/async/async-test");
@@ -214,4 +215,42 @@ QUnit.test("makeHandlerArgs and handlers are non enumerable", 0, function(){
 			ok(false, prop+ " is enumerable");
 		}
 	}
+});
+
+QUnit.test("makeHandlerArgs warns on impropper args", function() {
+	var obj = {
+		addEvent: canEvent.addEvent,
+		dispatch: canEvent.dispatch
+	};
+
+	obj.addEvent('foo', function(ev, arg1, arg2) {
+		ok(true, 'foo called');
+		equal(ev.type, 'foo', 'type');
+		equal(arg1, 1, 'one');
+		equal(arg2, 2, 'two');
+	});
+
+	obj.addEvent('bar', function(ev, arg1) {
+		ok(true, 'bar called');
+		equal(ev.type, 'bar', 'type');
+		equal(arg1, 1, 'one');
+	});
+
+	var oldWarn = canDev.warn;
+	var count = 0;
+	var messages = [
+		'Arguments to dispatch should be an array, not multiple arguments.',
+		'Arguments to dispatch should be an array.'
+	];
+	canDev.warn = function(message) {
+		equal(message, messages[count++], 'warn ' + count);
+	};
+
+	expect(16);
+	obj.dispatch({ type: 'foo' }, [ 1, 2 ]);
+	obj.dispatch({ type: 'foo' }, 1, 2);
+	obj.dispatch({ type: 'bar' }, [ 1 ]);
+	obj.dispatch({ type: 'bar' }, 1);
+
+	canDev.warn = oldWarn;
 });
