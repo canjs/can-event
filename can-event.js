@@ -16,6 +16,7 @@ var isEmptyObject = require('can-util/js/is-empty-object/is-empty-object');
 var domDispatch = require('can-util/dom/dispatch/dispatch');
 var namespace = require('can-namespace');
 require('can-util/dom/events/delegate/delegate');
+require('can-util/dom/events/delegate/enter-leave');
 
 function makeHandlerArgs(event, args) {
     if (typeof event === 'string') {
