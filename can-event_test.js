@@ -217,6 +217,7 @@ QUnit.test("makeHandlerArgs and handlers are non enumerable", 0, function(){
 	}
 });
 
+//!steal-remove-start
 QUnit.test("makeHandlerArgs warns on impropper args", function() {
 	var obj = {
 		addEvent: canEvent.addEvent,
@@ -254,3 +255,4 @@ QUnit.test("makeHandlerArgs warns on impropper args", function() {
 
 	canDev.warn = oldWarn;
 });
+//!steal-remove-end
