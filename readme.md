@@ -1,5 +1,7 @@
 # can-event
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/canjs/can-event.svg)](https://greenkeeper.io/)
+
 [![Build Status](https://travis-ci.org/canjs/can-event.png?branch=master)](https://travis-ci.org/canjs/can-event)
 
 
