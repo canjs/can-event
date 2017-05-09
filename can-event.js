@@ -13,6 +13,7 @@
 var domEvents = require('can-util/dom/events/events');
 var CID = require('can-cid');
 var isEmptyObject = require('can-util/js/is-empty-object/is-empty-object');
+var setNonEnumerable = require('can-util/js/set-not-enumerable/set-not-enumerable');
 var domDispatch = require('can-util/dom/dispatch/dispatch');
 var namespace = require('can-namespace');
 require('can-util/dom/events/delegate/delegate');
@@ -466,21 +467,10 @@ canEvent.undelegate = canEvent.off;
 
 canEvent.dispatch = canEvent.dispatchSync;
 
-
-
-Object.defineProperty(canEvent, "makeHandlerArgs",{
-    enumerable: false,
-    value: makeHandlerArgs
-});
-
-Object.defineProperty(canEvent,"handlers", {
-    enumerable: false,
-    value: getHandlers
-});
-Object.defineProperty(canEvent,"flush", {
-    enumerable: false,
-    writable: true,
-    value: function(){}
+setNonEnumerable(canEvent, {
+  makeHandlerArgs: makeHandlerArgs,
+  handlers: getHandlers,
+  flush: function(){}
 });
 
 module.exports = namespace.event = canEvent;
