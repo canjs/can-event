@@ -51,6 +51,7 @@ var canBatch = {
 	 * @signature `canBatch.start([batchStopHandler])`
 	 *
 	 * @param {Function} [batchStopHandler] a callback that gets called after all batched events have been called.
+	 * @param {Function} [forceBatchNum] a number that will be used to force the batchNum of the batch being started.
 	 *
 	 * @body
 	 * `canBatch.start` begins an event batch. Until `[can-event/batch/batch.stop]` is called, any
@@ -149,12 +150,12 @@ var canBatch = {
 	 * //        todos[1] 1
 	 * ```
 	 */
-	start: function (batchStopHandler) {
+	start: function (batchStopHandler, forceBatchNum) {
 		canBatch.transactions++;
 		if(canBatch.transactions === 1) {
 			var queue = {
 				// the batch number
-				number: batchNum++,
+				number: forceBatchNum || batchNum++,
 
 				// where are we in the task queue
 				index: 0,
@@ -450,24 +451,19 @@ var canBatch = {
 	 * function to be called, the context the function should be called with, and
 	 * the arguments to the function like: `[function,context, [arg1, arg2]]`
 	 */
-	queue: function(task, inCurrentBatch){
+	queue: function(task, batchNum){
 		if(collectionQueue) {
 			collectionQueue.tasks.push(task);
 		}
-		// if there are queues, but this doesn't belong to a batch
-		// add it to its own batch
+		// if there are queues, add this to its own batch
 		else if(queues.length) {
-			if(inCurrentBatch && queues[0].index < queues.tasks.length) {
-				queues[0].tasks.push(task);
-			} else {
-				canBatch.start();
-				collectionQueue.tasks.push(task);
-				last(queues).callbacks.push(canBatch.stop);
-			}
+			canBatch.start(null, batchNum);
+			collectionQueue.tasks.push(task);
+			last(queues).callbacks.push(canBatch.stop);
 		}
 		// there are no queues, so create one and run it.
 		else {
-			canBatch.start();
+			canBatch.start(null, batchNum);
 			collectionQueue.tasks.push(task);
 			canBatch.stop();
 		}
