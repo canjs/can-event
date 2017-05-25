@@ -208,3 +208,12 @@ QUnit.test("batchNumber is set by .dispatch that has a batchNum",function(){
 	obj.dispatch("first");
 	canBatch.stop();
 });
+
+QUnit.test("batchNumber is set by .queue when a batchNum is passed",function(){
+	var batchNum = 7;
+	var called = true;
+
+	canBatch.queue([function(){
+		equal(canBatch.batchNum, batchNum, "batchNum is set with passed value");
+	}, null, []], batchNum);
+});
