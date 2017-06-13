@@ -1,6 +1,6 @@
 {
   "name": "can-event",
-  "version": "3.4.1-0",
+  "version": "3.5.0-pre.1",
   "description": "",
   "homepage": "http://canjs.com",
   "repository": {
@@ -15,7 +15,7 @@
   "scripts": {
     "preversion": "npm test && npm run build",
     "version": "git commit -am \"Update dist for release\" && git checkout -b release && git add -f dist/",
-    "postversion": "git push --tags && git checkout master && git branch -D release && git push",
+    "postversion": "git push --tags && git checkout can-reflect && git branch -D release && git push",
     "testee": "testee test.html --browsers firefox",
     "test": " npm run jshint && npm run testee",
     "jshint": "jshint *.js --config",
