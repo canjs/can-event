@@ -589,7 +589,7 @@ Object.defineProperty(canBatch, 'debounce', {
 		return function() {
 			if (!that) {
 				canEvent.addEventListener.call(canBatch, "batchEnd", function listener() {
-					canEvent.removeEventListener.call(canBatch, "batchEnd");
+					canEvent.removeEventListener.call(canBatch, "batchEnd", listener);
 
 					handler.apply(that, args);
 					that = null;
