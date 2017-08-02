@@ -48,10 +48,10 @@
     "steal": "^1.2.0",
     "steal-qunit": "^1.0.0",
     "steal-tools": "^1.0.0",
+    "donejs-cli": "^1.0.1",
+    "done-serve": "^1.2.0",
     "testee": "^0.7.0",
-    "generator-donejs": "^1.0.7",
-    "donejs-cli": "^0.9.5",
-    "done-serve": "^0.2.4"
+    "generator-donejs": "^1.0.7"
   },
   "bit-docs": {
     "dependencies": {
