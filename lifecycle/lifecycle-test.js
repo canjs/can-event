@@ -56,3 +56,21 @@ QUnit.test("Calls _eventTeardown on the last removeEventListener", function(){
 	obj.addEventListener("Something", handler);
 	obj.removeEventListener("Something", handler);
 });
+
+
+QUnit.test("stopEventListener removes all events when no arguments are passed", function() {
+	expect(2)
+	var obj = {
+		removeEventListener: canEvent.removeEventListener,
+		addEventListener: canEvent.addEventListener,
+		_eventTeardown: function() {ok(true, 'eventTeardown called');},
+		_eventSetup: function() {ok(true, 'eventSetup called');}
+	};
+
+	lifecycle(obj);
+
+	obj.addEventListener('first', function() {return;});
+	obj.addEventListener('second', function() {return;});
+	obj.removeEventListener();
+
+});

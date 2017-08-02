@@ -109,14 +109,19 @@ var canEvent = {
 			return this;
 		}
 
+		// Remove all eventListeners if no arguments are passed
 		if (!arguments.length) {
-			console.log(this.__bindEvents)
-			for (var event in this.__bindEvents) {
-				if(event !== '_lifecycleBindings') {
-					this.removeEventListener(event);
+			for (var bindEvent in this.__bindEvents) {
+				if (bindEvent === '_lifecycleBindings') {
+					//reset lifecycleBindings count for lifecycle events
+					this.__bindEvents._lifecycleBindings = null;
+				} else if (this.__bindEvents.hasOwnProperty(bindEvent)) {
+					canEvent.removeEventListener.call(this, bindEvent, fn);
 				}
 			}
+			return this;
 		}
+
 		var handlers = this.__bindEvents[event] || [],
 			i = 0,
 			handler, isFunction = typeof fn === 'function';

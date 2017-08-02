@@ -258,12 +258,12 @@ QUnit.test("makeHandlerArgs warns on impropper args", function() {
 //!steal-remove-end
 
 QUnit.test("stopEventListener removes all events when no arguments are passed", function() {
-	expect(2)
+	expect(2);
 	var obj = {};
 	assign(obj, canEvent);
 
-	obj.addEventListener('first', function() { ok(true, 'first event listener called')});
-	obj.addEventListener('second', function() { ok(true, 'second event listener called')});
+	obj.addEventListener('first', function() { ok(true, 'first event listener called');});
+	obj.addEventListener('second', function() { ok(true, 'second event listener called');});
 	obj.dispatch({ type: 'first' });
 	obj.dispatch({ type: 'second' });
 
