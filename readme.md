@@ -106,9 +106,9 @@ Removes a basic event listener from an object.
 
 
 1. __event__ <code>{String}</code>:
-  The name of the event to listen for.
+  The name of the event to remove. If not specified, all events are removed.
 1. __handler__ <code>{function}</code>:
-  The handler that will be executed to handle the event.
+  The handler that will be removed from the event. If not specified, all handlers for the event are removed.
 1. ____validate__ <code>{function}</code>:
   An extra function that can validate an
   event handler as a match. This is an internal parameter and only used

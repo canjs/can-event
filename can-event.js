@@ -96,8 +96,8 @@ var canEvent = {
 	 *
 	 * Removes a basic event listener from an object. Don't pass arguments to remove all event listeners.
 	 *
-	 * @param {String} event The name of the event to listen for.
-	 * @param {Function} handler The handler that will be executed to handle the event.
+	 * @param {String} event The name of the event to remove. If not specified, all events are removed.
+	 * @param {Function} handler The handler that will be removed from the event. If not specified, all handlers for the event are removed.
 	 * @return {Object} this
 	 *
 	 * @signature `canEvent.removeEventListener.call(obj, event, handler)`
@@ -113,10 +113,10 @@ var canEvent = {
 		if (!arguments.length) {
 			for (var bindEvent in this.__bindEvents) {
 				if (bindEvent === '_lifecycleBindings') {
-					//reset lifecycleBindings count for lifecycle events
+					// Reset lifecycleBindings count for lifecycle events
 					this.__bindEvents._lifecycleBindings = null;
 				} else if (this.__bindEvents.hasOwnProperty(bindEvent)) {
-					canEvent.removeEventListener.call(this, bindEvent, fn);
+					canEvent.removeEventListener.call(this, bindEvent);
 				}
 			}
 			return this;

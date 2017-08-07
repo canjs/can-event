@@ -58,7 +58,7 @@ QUnit.test("Calls _eventTeardown on the last removeEventListener", function(){
 });
 
 
-QUnit.test("stopEventListener removes all events when no arguments are passed", function() {
+QUnit.test("removeEventListener removes all events when no arguments are passed", function() {
 	expect(2)
 	var obj = {
 		removeEventListener: canEvent.removeEventListener,
