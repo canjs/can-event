@@ -256,3 +256,51 @@ QUnit.test("makeHandlerArgs warns on impropper args", function() {
 	canDev.warn = oldWarn;
 });
 //!steal-remove-end
+
+QUnit.test("removeEventListener removes all events when no arguments are passed", function() {
+	expect(2);
+	var obj = {};
+	assign(obj, canEvent);
+
+	obj.addEventListener('first', function() { ok(true, 'first event listener called');});
+	obj.addEventListener('second', function() { ok(true, 'second event listener called');});
+	obj.dispatch({ type: 'first' });
+	obj.dispatch({ type: 'second' });
+
+	obj.removeEventListener();
+	obj.dispatch({ type: 'first' });
+	obj.dispatch({ type: 'second' });
+
+});
+
+QUnit.test("removeEventListener removes all handlers for specified event when no handlers are passed", function() {
+	expect(2);
+	var obj = {};
+	assign(obj, canEvent);
+
+	obj.addEventListener('first', function() { ok(true, 'first handler called');});
+	obj.addEventListener('first', function() { ok(true, 'second handler called');});
+	obj.dispatch({ type: 'first' });
+
+	obj.removeEventListener('first');
+	obj.dispatch({ type: 'first' });
+
+});
+
+QUnit.test("removeEventListener removes a specific handler for an event", function() {
+	expect(5);
+	var obj = {};
+	assign(obj, canEvent);
+	var firstHandler = function() { ok(true, 'first handler called');};
+	var secondHandler = function() { ok(true, 'second handler called');};
+	var thirdHandler = function() { ok(true, 'third handler called');};
+
+	obj.addEventListener('first', firstHandler);
+	obj.addEventListener('first', secondHandler);
+	obj.addEventListener('first', thirdHandler);
+	obj.dispatch({ type: 'first' });
+
+	obj.removeEventListener('first', secondHandler);
+	obj.dispatch({ type: 'first' });
+
+});
