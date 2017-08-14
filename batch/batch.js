@@ -16,8 +16,8 @@ var canDev = require("can-util/js/dev/dev");
 var canLog = require("can-util/js/log/log");
 
 //!steal-remove-start
-var debug = canDev.logLevel >= 1;
-if (debug && typeof console !== 'undefined') {
+var consoleDefined = typeof console !== 'undefined';
+if (consoleDefined) {
 	var group = console.group && console.group.bind(console) || canLog.log;
 	var groupEnd = console.groupEnd && console.groupEnd.bind(console) || function() {};
 }
@@ -270,6 +270,9 @@ var canBatch = {
 	},
 	// Flushes the current
 	flush: function() {
+		//!steal-remove-start
+		var debug = canDev.logLevel >= 1;
+		//!steal-remove-end
 
 		dispatchingQueues = true;
 		while(queues.length) {
@@ -282,7 +285,7 @@ var canBatch = {
 			var len = tasks.length;
 
 			//!steal-remove-start
-			if(debug && queue.index === 0 && queue.index < len) {
+			if(consoleDefined && debug && queue.index === 0 && queue.index < len) {
 				group("batch running "+queue.number);
 			}
 			//!steal-remove-end
@@ -328,7 +331,7 @@ var canBatch = {
 				queues.shift();
 
 				//!steal-remove-start
-				if(debug) {
+				if(consoleDefined && debug) {
 					groupEnd();
 				}
 				//!steal-remove-end
