@@ -17,7 +17,7 @@ var canLog = require("can-util/js/log/log");
 
 //!steal-remove-start
 var consoleDefined = typeof console !== 'undefined';
-var group = consoleDefined && console.group && console.group.bind(console) || canLog.log;
+var group = consoleDefined && console.group && console.group.bind(console) || function() {};
 var groupEnd = consoleDefined && console.groupEnd && console.groupEnd.bind(console) || function() {};
 //!steal-remove-end
 
