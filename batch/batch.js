@@ -16,8 +16,11 @@ var canDev = require("can-util/js/dev/dev");
 var canLog = require("can-util/js/log/log");
 
 //!steal-remove-start
-var group = console.group && console.group.bind(console) || canLog.log;
-var groupEnd = console.groupEnd && console.groupEnd.bind(console) || function() {};
+var debug = canDev.logLevel >= 1;
+if (debug && typeof console !== 'undefined') {
+	var group = console.group && console.group.bind(console) || canLog.log;
+	var groupEnd = console.groupEnd && console.groupEnd.bind(console) || function() {};
+}
 //!steal-remove-end
 
 // Which batch of events this is for -- might not want to send multiple
@@ -267,9 +270,6 @@ var canBatch = {
 	},
 	// Flushes the current
 	flush: function() {
-		//!steal-remove-start
-		var debug = canDev.logLevel >= 1;
-		//!steal-remove-end
 
 		dispatchingQueues = true;
 		while(queues.length) {
