@@ -42,6 +42,9 @@ function addToCollectionQueue(item, event, args, handlers){
 
 
 var canBatch = {
+	//!steal-remove-start
+	missingStopWarningTimeout: 5000,
+	//!steal-remove-end
 	// how many times has start been called without a stop
 	transactions: 0,
 	/**
@@ -171,7 +174,13 @@ var canBatch = {
 				// if everything this batch can do has been done
 				complete: false
 			};
-
+			//!steal-remove-start
+			setTimeout(function(){
+				if (queue.complete === false) {
+					canDev.warn("can-even/batch/batch: start called without corresponding stop");
+				}
+			},canBatch.missingStopWarningTimeout);
+			//!steal-remove-end
 			if (batchStopHandler) {
 				queue.callbacks.push(batchStopHandler);
 			}

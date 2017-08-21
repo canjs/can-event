@@ -3,6 +3,7 @@ var QUnit = require('steal-qunit');
 var assign = require('can-util/js/assign/assign');
 var canBatch = require("can-event/batch/batch");
 var eventAsync = require("can-event/async/async");
+var canDev = require('can-util/js/dev/dev');
 
 require('can-util/dom/events/delegate/delegate');
 
@@ -276,3 +277,20 @@ QUnit.test("debounce - only triggers if event was triggered", function() {
 	obj.dispatch("foo");
 	canBatch.stop();
 });
+
+if (System.env.indexOf('production') < 0) {
+	QUnit.test("missing stop should show Warning Timeout", function(){
+		canBatch.missingStopWarningTimeout = 10000;
+		var oldWarn = canDev.warn;
+		QUnit.stop();
+		canDev.warn = function() {
+			QUnit.start();
+			ok(true, "received warning");
+			canDev.warn = oldWarn;
+			canBatch.missingStopWarningTimeout = 5000;
+		};
+		var obj = assign({}, canEvent);
+		canBatch.start();
+		obj.dispatch("anEvent");
+	});
+}
