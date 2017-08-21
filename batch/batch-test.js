@@ -279,15 +279,17 @@ QUnit.test("debounce - only triggers if event was triggered", function() {
 });
 
 if (System.env.indexOf('production') < 0) {
-	QUnit.test("missing stop should show Warning Timeout", function(){
-		canBatch.missingStopWarningTimeout = 10000;
+	QUnit.test("missing stop should logs a Warning Timeout", function(){
+		var oldMissingStopWarningTimeout = canBatch.missingStopWarningTimeout;
+		canBatch.missingStopWarningTimeout = 1000;
 		var oldWarn = canDev.warn;
 		QUnit.stop();
 		canDev.warn = function() {
 			QUnit.start();
 			ok(true, "received warning");
+			canBatch.missingStopWarningTimeout = oldMissingStopWarningTimeout;
 			canDev.warn = oldWarn;
-			canBatch.missingStopWarningTimeout = 5000;
+			canBatch.stop();
 		};
 		var obj = assign({}, canEvent);
 		canBatch.start();
