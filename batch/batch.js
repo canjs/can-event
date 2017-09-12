@@ -172,14 +172,14 @@ var canBatch = {
 				callbacks: [],
 
 				// if everything this batch can do has been done
-				complete: false,
-
-				stopTimeout: 0
+				complete: false
 			};
 			//!steal-remove-start
-			queue.stopTimeout = setTimeout(function(){
-				canDev.warn("can-even/batch/batch: start called without corresponding stop");
-			}, canBatch.missingStopWarningTimeout);
+			setTimeout(function(){
+				if (queue.complete === false) {
+					canDev.warn("can-even/batch/batch: start called without corresponding stop");
+				}
+			},canBatch.missingStopWarningTimeout);
 			//!steal-remove-end
 			if (batchStopHandler) {
 				queue.callbacks.push(batchStopHandler);
@@ -335,9 +335,6 @@ var canBatch = {
 			if(!queue.complete) {
 				queue.complete = true;
 				canBatch.batchNum = undefined;
-				//!steal-remove-start
-				clearTimeout(queue.stopTimeout);
-				//!steal-remove-end
 				queues.shift();
 
 				//!steal-remove-start
