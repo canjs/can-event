@@ -175,11 +175,18 @@ var canBatch = {
 				complete: false
 			};
 			//!steal-remove-start
-			setTimeout(function(){
-				if (queue.complete === false) {
-					canDev.warn("can-even/batch/batch: start called without corresponding stop");
-				}
-			},canBatch.missingStopWarningTimeout);
+			var setupWarning = function(){
+				setTimeout(function(){
+					if (queue.complete === false) {
+						canDev.warn("can-even/batch/batch: start called without corresponding stop");
+					}
+				}, canBatch.missingStopWarningTimeout);
+			};
+			if(typeof CanZone !== "undefined") {
+				CanZone.ignore(setupWarning)();
+			} else {
+				setupWarning();
+			}
 			//!steal-remove-end
 			if (batchStopHandler) {
 				queue.callbacks.push(batchStopHandler);
