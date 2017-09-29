@@ -102,10 +102,10 @@ And a template that uses the `completeCount` and calls `completeAll`:
 ```
 <ul>
 {{#each todos}}
-	<li><input type='checklist' {($checked)}="complete"/> {{name}}</li>
+	<li><input type='checklist' checked:bind="complete"/> {{name}}</li>
 {{/each}}
 </ul>
-<button ($click)="todos.completeAll()">
+<button on:click="todos.completeAll()">
   Complete {{todos.completeCount}} todos
 </button>
 ```
