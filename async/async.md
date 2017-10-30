@@ -1,5 +1,6 @@
 @module {Object} can-event/async/async
-@parent can-infrastructure
+@parent can-observables
+@collection can-infrastructure
 
 @description Makes the event system asynchronous. __WARNING:__ This is experimental technology.
 
