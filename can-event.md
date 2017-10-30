@@ -1,5 +1,6 @@
 @module {{}} can-event
-@parent can-infrastructure
+@parent can-observables
+@collection can-infrastructure
 @test can/event/test.html
 @link ../docco/event.html docco
 @group can-event.static static

@@ -1,5 +1,6 @@
 @module {Object} can-event/batch/batch
-@parent can-infrastructure
+@parent can-observables
+@collection can-infrastructure
 
 @description Adds task batching abilities to event dispatching.
 

@@ -1,5 +1,6 @@
 @module {Object} can-event/lifecycle/lifecycle
-@parent can-infrastructure
+@parent can-observables
+@collection can-infrastructure
 
 @description Mixin lifecycle events onto a prototype.
 
