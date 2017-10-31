@@ -1,6 +1,7 @@
 var canEvent = require('can-event');
 /**
  * @typedef {{bind:function():*,unbind:function():*}} can.util.bind
+ * @hide
  *
  * Provides mixin-able bind and unbind methods. `bind()` calls `this._bindsetup`
  * when the first bind happens and.  `unbind()` calls `this._bindteardown` when there
