@@ -178,7 +178,7 @@ var canBatch = {
 			var setupWarning = function(){
 				setTimeout(function(){
 					if (queue.complete === false) {
-						canDev.warn("can-even/batch/batch: start called without corresponding stop");
+						canDev.warn("can-event/batch/batch: start called without corresponding stop");
 					}
 				}, canBatch.missingStopWarningTimeout);
 			};
