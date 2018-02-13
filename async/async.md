@@ -22,12 +22,12 @@ The `can-event/async/async` module makes the event system asynchronous.  It:
 Use `can-event/async/async`'s `async` method to make event binding and
 dispatching happen immediately following the current event loop.
 
-```js
-var canEvent = require("can-event");
-var canAsync = require("can-event/async/async");
+```javascript
+import canEvent from "can-event";
+import canAsync from "can-event/async/async";
 canAsync.async();
 
-var obj = {};
+const obj = {};
 Object.assign(obj, canEvent);
 
 obj.addEventListener("foo", function(){
@@ -42,22 +42,22 @@ console.log("dispatched foo");
 This means you never have to call [can-event/batch/batch.start] and [can-event/batch/batch.stop]. Notice
 that in the following example `"change"` is only fired once:
 
-```js
-var canAsync = require("can-event/async/async");
+```javascript
+import canAsync from "can-event/async/async";
 canAsync.async();
 
-var compute = require("can-compute");
+import compute from "can-compute";
 
-var first = compute("Justin");
-var last = compute("Meyer");
+const first = compute("Justin");
+const last = compute("Meyer");
 
-var fullName = compute(function(){
-	return first() + " " + last();
+const fullName = compute(function(){
+  return first() + " " + last();
 });
 
 fullName.on("change", function(ev, newVal, oldVal){
-	newVal //-> "Payal Shah"
-	oldVal //-> "Justin Meyer"
+  newVal //-> "Payal Shah"
+  oldVal //-> "Justin Meyer"
 });
 
 first("Payal");
