@@ -17,7 +17,7 @@ The `can-event/lifecycle/lifecycle` module adds lifecycle events to a prototype 
 
 To use lifecycle events, provide an object with add/removeEventListener methods.
 
-```javascript
+```js
 const Todo = function(){
 
 };
@@ -25,6 +25,6 @@ const Todo = function(){
 lifecycle(assign(Todo.prototype, canEvent));
 
 Todo.prototype._eventSetup = function(){
-  // Called the first time bindings are added.
+	// Called the first time bindings are added.
 };
 ```

@@ -21,7 +21,7 @@ Adds event functionality to `YourClass` objects. This can also be applied to nor
 
 The `assign` function can be any function that assigns additional properties on an object such as [Object.assign](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/assign) or lodash's [_.assign](https://lodash.com/docs#assign) or [can-util/js/assign/assign].
 
-```javascript
+```js
 import assign from "can-util/js/assign/assign";
 import canEvent from "can-event";
 
