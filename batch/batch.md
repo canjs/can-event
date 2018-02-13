@@ -116,6 +116,7 @@ once for every completed count.  We can prevent this by wrapping `completeAll` w
 `start` and `stop`:
 
 ```js
+{
 	completeAll: function(){
 		canBatch.start();
 		this.forEach(function(todo){
@@ -123,6 +124,7 @@ once for every completed count.  We can prevent this by wrapping `completeAll` w
 		});
 		canBatch.end();
 	},
+}
 ```
 
 
