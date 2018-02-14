@@ -28,13 +28,13 @@ import canAsync from "can-event/async/async";
 canAsync.async();
 
 const obj = {};
-Object.assign(obj, canEvent);
+Object.assign( obj, canEvent );
 
-obj.addEventListener("foo", function(){
-	console.log("heard foo");
-});
-obj.dispatch("foo");
-console.log("dispatched foo");
+obj.addEventListener( "foo", function() {
+	console.log( "heard foo" );
+} );
+obj.dispatch( "foo" );
+console.log( "dispatched foo" );
 
 // Logs -> "dispatched foo" then "heard foo"
 ```
@@ -48,18 +48,18 @@ canAsync.async();
 
 import compute from "can-compute";
 
-const first = compute("Justin");
-const last = compute("Meyer");
+const first = compute( "Justin" );
+const last = compute( "Meyer" );
 
-const fullName = compute(function(){
+const fullName = compute( function() {
 	return first() + " " + last();
-});
+} );
 
-fullName.on("change", function(ev, newVal, oldVal){
-	newVal //-> "Payal Shah"
-	oldVal //-> "Justin Meyer"
-});
+fullName.on( "change", function( ev, newVal, oldVal ) {
+	newVal; //-> "Payal Shah"
+	oldVal; //-> "Justin Meyer"
+} );
 
-first("Payal");
-last("Shah");
+first( "Payal" );
+last( "Shah" );
 ```

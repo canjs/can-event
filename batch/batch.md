@@ -26,26 +26,28 @@ To batch events, call  [can-event/batch/batch.start], then make changes that
 For example, a map might have a `first` and `last` property:
 
 ```js
-const Person = DefineMap.extend({
+const Person = DefineMap.extend( {
 	first: "string",
 	last: "string"
-});
+} );
 
-const baby = new Person({first: "Roland", last: "Shah"});
+const baby = new Person( { first: "Roland", last: "Shah" } );
 ```
 
 Normally, when `baby`'s `first` and `last` are fired, those events are dispatched immediately:
 
 ```js
-baby.on("first", function(ev, newFirst){
-	console.log("first is "+newFirst);
-}).on("last", function(ev, newLast){
-	console.log("last is "+newLast);
-});
+baby.on( "first", function( ev, newFirst ) {
+	console.log( "first is " + newFirst );
+} ).on( "last", function( ev, newLast ) {
+	console.log( "last is " + newLast );
+} );
 
 baby.first = "Ramiya";
+
 // console.logs -> "first is Ramiya"
 baby.last = "Meyer";
+
 // console.logs -> "first is Meyer"
 ```
 
@@ -58,6 +60,7 @@ canBatch.start();
 baby.first = "Lincoln";
 baby.last = "Sullivan";
 canBatch.stop();
+
 // console.logs -> "first is Lincoln"
 // console.logs -> "first is Sullivan"
 ```
@@ -80,22 +83,22 @@ Consider a todo list with a `completeAll` method that marks every todo in the li
 complete and `completeCount` that counts the number of complete todos:
 
 ```js
-const Todo = DefineMap.extend({
+const Todo = DefineMap.extend( {
 	name: "string",
 	complete: "boolean"
-});
+} );
 
-const TodoList = DefineList.extend({
+const TodoList = DefineList.extend( {
 	"#": Todo,
-	completeAll: function(){
-		this.forEach(function(todo){
+	completeAll: function() {
+		this.forEach( function( todo ) {
 			todo.complete = true;
-		})
+		} );
 	},
-	completeCount: function(){
-		return this.filter({complete: true}).length;
+	completeCount: function() {
+		return this.filter( { complete: true } ).length;
 	}
-});
+} );
 ```
 
 And a template that uses the `completeCount` and calls `completeAll`:
@@ -117,13 +120,13 @@ once for every completed count.  We can prevent this by wrapping `completeAll` w
 
 ```js
 {
-	completeAll: function(){
+	completeAll: function() {
 		canBatch.start();
-		this.forEach(function(todo){
+		this.forEach( function( todo ) {
 			todo.complete = true;
-		});
+		} );
 		canBatch.end();
-	},
+	}
 }
 ```
 

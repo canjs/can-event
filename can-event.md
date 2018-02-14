@@ -25,14 +25,14 @@ The `assign` function can be any function that assigns additional properties on 
 import assign from "can-util/js/assign/assign";
 import canEvent from "can-event";
 
-function Thing(){
+function Thing() {
 
 }
 
-assign(Thing.prototype, canEvent);
+assign( Thing.prototype, canEvent );
 
 const thing = new Thing();
-thing.addEventListener("prop", function(){ /* ... */ });
+thing.addEventListener( "prop", function() { /* ... */ } );
 ```
 
 @body
