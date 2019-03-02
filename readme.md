@@ -5,15 +5,13 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/canjs/can-event/blob/master/LICENSE.md)
 [![npm version](https://badge.fury.io/js/can-event.svg)](https://www.npmjs.com/package/can-event)
 [![Travis build status](https://travis-ci.org/canjs/can-event.svg?branch=master)](https://travis-ci.org/canjs/can-event)
-[![AppVeyor build status](https://ci.appveyor.com/api/projects/status/github/canjs/can-event?branch=master&svg=true)](https://ci.appveyor.com/project/matthewp/can-event)
-[![Coverage status](https://coveralls.io/repos/github/canjs/can-event/badge.svg?branch=master)](https://coveralls.io/github/canjs/can-event?branch=master)
 [![Greenkeeper badge](https://badges.greenkeeper.io/canjs/can-event.svg)](https://greenkeeper.io/)
 
 Add event functionality into your objects.
 
 ## Documentation
 
-Read the [can-event API docs on CanJS.com](https://canjs.com/doc/can-event.html).
+Read the [can-event API docs on CanJS.com](https://v3.canjs.com/doc/can-event.html).
 
 ## Changelog
 
