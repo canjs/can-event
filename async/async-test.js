@@ -6,24 +6,24 @@ var eventAsync = require("can-event/async/async");
 require('can-util/dom/events/delegate/delegate');
 
 QUnit.module('can-event/async',{
-	setup: function(){
+	beforeEach: function(assert) {
 		eventAsync.async();
 	},
-	teardown: function(){
+	afterEach: function(assert) {
 		eventAsync.sync();
 	}
 });
 
-QUnit.asyncTest('removing an event handler, nothing called', 5, function () {
+QUnit.test('removing an event handler, nothing called', 5, function(assert) {
 	var obj = {};
 
 	assign(obj, canEvent);
 
 	var handler = function (ev, arg1, arg2) {
-		ok(true, 'foo called');
-		equal(ev.type, 'foo');
-		equal(arg1, 1, 'one');
-		equal(arg2, 2, 'two');
+		assert.ok(true, 'foo called');
+		assert.equal(ev.type, 'foo');
+		assert.equal(arg1, 1, 'one');
+		assert.equal(arg2, 2, 'two');
 	};
 
 	obj.addEventListener('foo', handler);
@@ -38,8 +38,8 @@ QUnit.asyncTest('removing an event handler, nothing called', 5, function () {
 	obj.removeEventListener('foo', handler);
 
 	obj.addEventListener('foo',function(){
-		QUnit.ok(true, "this handler called");
-		QUnit.start();
+		assert.ok(true, "this handler called");
+		done();
 	});
 	obj.dispatch({
 		type: 'foo',
@@ -51,18 +51,18 @@ QUnit.asyncTest('removing an event handler, nothing called', 5, function () {
 
 });
 
-QUnit.asyncTest('removing an event handler, nothing called with on', 6, function () {
+QUnit.test('removing an event handler, nothing called with on', 6, function(assert) {
 	var obj = {};
 
 	assign(obj, canEvent);
 
 	var dispatched = false;
 	var handler = function (ev, arg1, arg2) {
-		ok(dispatched, "dispatched should be async");
-		ok(true, 'foo called');
-		equal(ev.type, 'foo');
-		equal(arg1, 1, 'one');
-		equal(arg2, 2, 'two');
+		assert.ok(dispatched, "dispatched should be async");
+		assert.ok(true, 'foo called');
+		assert.equal(ev.type, 'foo');
+		assert.equal(arg1, 1, 'one');
+		assert.equal(arg2, 2, 'two');
 	};
 
 	obj.on('foo', handler);
@@ -78,8 +78,8 @@ QUnit.asyncTest('removing an event handler, nothing called with on', 6, function
 	obj.off('foo', handler);
 
 	obj.on('foo',function(){
-		QUnit.ok(true, "this handler called");
-		QUnit.start();
+		assert.ok(true, "this handler called");
+		done();
 	});
 	obj.dispatch({
 		type: 'foo',
@@ -91,21 +91,22 @@ QUnit.asyncTest('removing an event handler, nothing called with on', 6, function
 
 });
 
-QUnit.asyncTest("async with same batch number is fired right away", function(){
-	var obj = assign({}, canEvent);
-	var secondDispatched = false;
-	var secondBatchNum;
+QUnit.test("async with same batch number is fired right away", function(assert) {
+    var ready = assert.async();
+    var obj = assign({}, canEvent);
+    var secondDispatched = false;
+    var secondBatchNum;
 
-	obj.on("first", function(ev){
+    obj.on("first", function(ev){
 		obj.dispatch({batchNum: ev.batchNum, type: "second"});
-		equal(secondBatchNum, ev.batchNum, "batch nums the same");
-		ok(secondDispatched, "dispatched event immediately");
-		QUnit.start();
+		assert.equal(secondBatchNum, ev.batchNum, "batch nums the same");
+		assert.ok(secondDispatched, "dispatched event immediately");
+		ready();
 	});
 
-	obj.on("second", function(ev){
+    obj.on("second", function(ev){
 		secondDispatched = true;
 		secondBatchNum = ev.batchNum;
 	});
-	obj.dispatch("first");
+    obj.dispatch("first");
 });

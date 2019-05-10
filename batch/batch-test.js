@@ -8,61 +8,61 @@ var canDev = require('can-util/js/dev/dev');
 require('can-util/dom/events/delegate/delegate');
 
 QUnit.module('can-event/batch',{
-	setup: function(){
+	beforeEach: function(assert) {
 		eventAsync.sync();
 	},
-	teardown: function(){
+	afterEach: function(assert) {
 		eventAsync.async();
 	}
 });
 
-QUnit.test("basics", function(){
+QUnit.test("basics", function(assert) {
 	var collecting;
 	var secondFired = false;
 	var obj = assign({}, canEvent);
 	obj.on("first", function(ev, arg1, arg2){
-		QUnit.equal(collecting.number, ev.batchNum, "same batch num");
-		QUnit.equal(canBatch.dispatching(), collecting, "dispatching old collecting");
-		QUnit.equal(arg1, 1, "first arg");
-		QUnit.equal(arg2, 2, "second arg");
+		assert.equal(collecting.number, ev.batchNum, "same batch num");
+		assert.equal(canBatch.dispatching(), collecting, "dispatching old collecting");
+		assert.equal(arg1, 1, "first arg");
+		assert.equal(arg2, 2, "second arg");
 
 		collecting = canBatch.collecting();
-		QUnit.ok(!collecting, "not collecting b/c we're not in a batch yet");
+		assert.ok(!collecting, "not collecting b/c we're not in a batch yet");
 		obj.dispatch("second");
 		collecting = canBatch.collecting();
-		QUnit.ok(collecting, "forced a batch");
-		QUnit.equal(secondFired, false, "don't fire yet, put in next batch");
+		assert.ok(collecting, "forced a batch");
+		assert.equal(secondFired, false, "don't fire yet, put in next batch");
 
 	});
 
 
 	obj.on("second", function(ev){
 		secondFired = true;
-		QUnit.equal(collecting.number, ev.batchNum, "same batch num on second");
-		QUnit.equal(canBatch.dispatching(), collecting, "dispatching second collecting");
+		assert.equal(collecting.number, ev.batchNum, "same batch num on second");
+		assert.equal(canBatch.dispatching(), collecting, "dispatching second collecting");
 	});
 
 	canBatch.start();
 	collecting = canBatch.collecting();
-	QUnit.ok(canBatch.collecting(), "is collecting");
+	assert.ok(canBatch.collecting(), "is collecting");
 	obj.dispatch("first",[1,2]);
 	canBatch.stop();
 
 
 });
 
-QUnit.test("events are queued and dispatched without .stop being called (#14)", function(){
+QUnit.test("events are queued and dispatched without .stop being called (#14)", function(assert) {
 	var obj = assign({}, canEvent);
 
 
 	obj.on("first", function(ev){
 		obj.dispatch("second");
-		QUnit.ok(canBatch.collecting() !== canBatch.dispatching(), "dispatching is not collecting");
+		assert.ok(canBatch.collecting() !== canBatch.dispatching(), "dispatching is not collecting");
 	});
 
 	obj.on("second", function(){
-		QUnit.ok(canBatch.collecting() !== canBatch.dispatching(), "dispatching is not collecting");
-		QUnit.ok(true, "called");
+		assert.ok(canBatch.collecting() !== canBatch.dispatching(), "dispatching is not collecting");
+		assert.ok(true, "called");
 	});
 
 	canBatch.start();
@@ -70,31 +70,31 @@ QUnit.test("events are queued and dispatched without .stop being called (#14)", 
 	canBatch.stop();
 });
 
-test("Everything is part of a batch", function(){
+QUnit.test("Everything is part of a batch", function(assert) {
 	var obj = {};
 	assign(obj, canEvent);
 
 	obj.on("foo", function(ev){
-		ok(ev.batchNum); // There is a batch number
+		assert.ok(ev.batchNum); // There is a batch number
 	});
 
 	obj.dispatch("foo");
 });
 
-test("batch.queue callback called after events fired in the same fn", function(){
+QUnit.test("batch.queue callback called after events fired in the same fn", function(assert) {
 	var obj = assign({}, canEvent);
 
 	var thirdCalled = false, firstBatch;
 	obj.on("third",function(ev){
-		QUnit.equal( firstBatch, ev.batchNum, "third is right");
+		assert.equal( firstBatch, ev.batchNum, "third is right");
 		thirdCalled = true;
 	});
 
 	obj.on("first", function(ev){
-		equal(typeof ev.batchNum, "number", "got a batch number");
+		assert.equal(typeof ev.batchNum, "number", "got a batch number");
 		firstBatch = ev.batchNum;
 		canBatch.queue([function(){
-			equal(thirdCalled, true, "third called before this");
+			assert.equal(thirdCalled, true, "third called before this");
 		}, null, []]);
 
 		obj.dispatch({type: "third", batchNum: ev.batchNum});
@@ -104,11 +104,11 @@ test("batch.queue callback called after events fired in the same fn", function()
 });
 
 
-QUnit.test("afterPreviousEvents doesn't run after all collecting previous events (#17)", function(){
+QUnit.test("afterPreviousEvents doesn't run after all collecting previous events (#17)", function(assert) {
 	var obj = assign({}, canEvent);
 	var afterPreviousEventsFired = false;
 	obj.on("first", function(){
-		QUnit.ok(!afterPreviousEventsFired, "after previous should fire after");
+		assert.ok(!afterPreviousEventsFired, "after previous should fire after");
 	});
 
 	canBatch.start();
@@ -120,15 +120,15 @@ QUnit.test("afterPreviousEvents doesn't run after all collecting previous events
 });
 
 
-QUnit.test("flushing works (#18)", function(){
+QUnit.test("flushing works (#18)", function(assert) {
 	var firstFired, secondFired, thirdFired;
 	var obj = assign({}, canEvent);
 
 	obj.on("first", function(){
 		canBatch.flush();
-		QUnit.ok(firstFired, "first fired");
-		QUnit.ok(secondFired, "second fired");
-		QUnit.ok(thirdFired, "third fired");
+		assert.ok(firstFired, "first fired");
+		assert.ok(secondFired, "second fired");
+		assert.ok(thirdFired, "third fired");
 	});
 	obj.on("first", function(){
 		firstFired = true;
@@ -148,18 +148,18 @@ QUnit.test("flushing works (#18)", function(){
 });
 
 
-QUnit.test("flush is non enumerable (#18)", 1, function(){
-	QUnit.equal( canEvent.flush, canBatch.flush );
+QUnit.test("flush is non enumerable (#18)", 1, function(assert) {
+	assert.equal( canEvent.flush, canBatch.flush );
 	for(var prop in canEvent) {
 		if(prop === "flush") {
-			ok(false, "flush is enumerable");
+			assert.ok(false, "flush is enumerable");
 		}
 	}
 });
 
 // The problem with the way atm is doing it ...
 // the batch is ended ... but it doesn't pick up the next item in the queue and process it.
-QUnit.test("flushing a future batch (#18)", function(){
+QUnit.test("flushing a future batch (#18)", function(assert) {
 	var firstFired, secondFired, thirdFired;
 	var obj = assign({}, canEvent);
 
@@ -170,9 +170,9 @@ QUnit.test("flushing a future batch (#18)", function(){
 		canBatch.stop();
 
 		canBatch.flush();
-		QUnit.ok(firstFired, "first fired");
-		QUnit.ok(secondFired, "second fired");
-		QUnit.ok(thirdFired, "third fired");
+		assert.ok(firstFired, "first fired");
+		assert.ok(secondFired, "second fired");
+		assert.ok(thirdFired, "third fired");
 	});
 	obj.on("first", function(){
 		firstFired = true;
@@ -189,7 +189,7 @@ QUnit.test("flushing a future batch (#18)", function(){
 
 });
 
-QUnit.test("batchNumber is set by .dispatch that has a batchNum",function(){
+QUnit.test("batchNumber is set by .dispatch that has a batchNum",function(assert) {
 	var obj = assign({}, canEvent);
 	var firstBN;
 	obj.on("first", function(ev){
@@ -201,8 +201,8 @@ QUnit.test("batchNumber is set by .dispatch that has a batchNum",function(){
 	});
 	obj.on("second", function(ev){
 
-		QUnit.equal(firstBN,ev.batchNum,"batch num set");
-		QUnit.equal(canBatch.batchNum,ev.batchNum,"batch num set");
+		assert.equal(firstBN,ev.batchNum,"batch num set");
+		assert.equal(canBatch.batchNum,ev.batchNum,"batch num set");
 	});
 
 	canBatch.start();
@@ -210,45 +210,45 @@ QUnit.test("batchNumber is set by .dispatch that has a batchNum",function(){
 	canBatch.stop();
 });
 
-QUnit.test("debounce - basics (#3)", function() {
+QUnit.test("debounce - basics (#3)", function(assert) {
 	var obj = assign({}, canEvent);
 	obj.on("event", canBatch.debounce(function(event, arg1, arg2) {
-		ok(true, "event run");
-		equal(arg1, 3);
-		equal(arg2, 4);
+		assert.ok(true, "event run");
+		assert.equal(arg1, 3);
+		assert.equal(arg2, 4);
 	}));
 
-	expect(3);
+	assert.expect(3);
 	canBatch.start();
 	obj.dispatch("event", [ 1, 2 ]);
 	obj.dispatch("event", [ 3, 4 ]);
 	canBatch.stop();
 });
 
-QUnit.test("debounce - is not inherited", function() {
+QUnit.test("debounce - is not inherited", function(assert) {
 	var obj = assign({}, canEvent);
-	ok(!obj.debounce);
+	assert.ok(!obj.debounce);
 });
 
-QUnit.test("debounce - handles multiple batches", function() {
+QUnit.test("debounce - handles multiple batches", function(assert) {
 	var obj = assign({}, canEvent);
 
 	var count = 0;
 	obj.on("event", canBatch.debounce(function(event, arg1, arg2) {
-		ok(true, "event run");
+		assert.ok(true, "event run");
 
 		count++;
 		if (count === 1) {
-			equal(arg1, 7);
-			equal(arg2, 8);
+			assert.equal(arg1, 7);
+			assert.equal(arg2, 8);
 		}
 		if (count === 2) {
-			equal(arg1, 10);
-			equal(arg2, 11);
+			assert.equal(arg1, 10);
+			assert.equal(arg2, 11);
 		}
 	}));
 
-	expect(6);
+	assert.expect(6);
 	canBatch.start();
 	obj.dispatch("event", [ 5, 6 ]);
 	obj.dispatch("event", [ 7, 8 ]);
@@ -260,13 +260,13 @@ QUnit.test("debounce - handles multiple batches", function() {
 	canBatch.stop();
 });
 
-QUnit.test("debounce - only triggers if event was triggered", function() {
+QUnit.test("debounce - only triggers if event was triggered", function(assert) {
 	var obj = assign({}, canEvent);
 	obj.on("event", canBatch.debounce(function() {
-		ok(true, "event run");
+		assert.ok(true, "event run");
 	}));
 
-	expect(1);
+	assert.expect(1);
 	canBatch.start();
 	obj.dispatch("event");
 	obj.dispatch("event");
@@ -279,14 +279,14 @@ QUnit.test("debounce - only triggers if event was triggered", function() {
 });
 
 if (System.env.indexOf('production') < 0) {
-	QUnit.test("missing stop should logs a Warning Timeout", function(){
+	QUnit.test("missing stop should logs a Warning Timeout", function(assert) {
 		var oldMissingStopWarningTimeout = canBatch.missingStopWarningTimeout;
 		canBatch.missingStopWarningTimeout = 1000;
 		var oldWarn = canDev.warn;
-		QUnit.stop();
+		var done = assert.async();
 		canDev.warn = function() {
-			QUnit.start();
-			ok(true, "received warning");
+			done();
+			assert.ok(true, "received warning");
 			canBatch.missingStopWarningTimeout = oldMissingStopWarningTimeout;
 			canDev.warn = oldWarn;
 			canBatch.stop();

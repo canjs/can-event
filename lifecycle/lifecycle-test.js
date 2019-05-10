@@ -4,10 +4,10 @@ var QUnit = require('steal-qunit');
 
 QUnit.module("can-event/lifecycle");
 
-QUnit.test("Mixins your addEventListener", function(){
+QUnit.test("Mixins your addEventListener", function(assert) {
 	var proto = {
 		addEventListener: function(){
-			QUnit.ok(true, "this was called");
+			assert.ok(true, "this was called");
 		},
 		removeEventListener: function(){}
 	};
@@ -16,10 +16,10 @@ QUnit.test("Mixins your addEventListener", function(){
 	obj.addEventListener("Hello world!");
 });
 
-QUnit.test("Mixins your removeEventListener", function(){
+QUnit.test("Mixins your removeEventListener", function(assert) {
 	var proto = {
 		removeEventListener: function(){
-			QUnit.ok(true, "this was called");
+			assert.ok(true, "this was called");
 		},
 		addEventListener: canEvent.addEventListener
 	};
@@ -29,10 +29,10 @@ QUnit.test("Mixins your removeEventListener", function(){
 	obj.removeEventListener("some-event");
 });
 
-QUnit.test("Calls _eventSetup on the first addEventListener", function(){
+QUnit.test("Calls _eventSetup on the first addEventListener", function(assert) {
 	var proto = {
 		_eventSetup: function(){
-			QUnit.ok(true, "eventSetup was called");
+			assert.ok(true, "eventSetup was called");
 		},
 		addEventListener: function(){},
 		removeEventListener: function(){}
@@ -42,10 +42,10 @@ QUnit.test("Calls _eventSetup on the first addEventListener", function(){
 	obj.addEventListener("Something");
 });
 
-QUnit.test("Calls _eventTeardown on the last removeEventListener", function(){
+QUnit.test("Calls _eventTeardown on the last removeEventListener", function(assert) {
 	var proto = {
 		_eventTeardown: function(){
-			QUnit.ok(true, "eventTeardown was called");
+			assert.ok(true, "eventTeardown was called");
 		},
 		addEventListener: canEvent.addEventListener,
 		removeEventListener: canEvent.removeEventListener
@@ -58,13 +58,13 @@ QUnit.test("Calls _eventTeardown on the last removeEventListener", function(){
 });
 
 
-QUnit.test("removeEventListener removes all events when no arguments are passed", function() {
-	expect(2)
+QUnit.test("removeEventListener removes all events when no arguments are passed", function(assert) {
+	assert.expect(2)
 	var obj = {
 		removeEventListener: canEvent.removeEventListener,
 		addEventListener: canEvent.addEventListener,
-		_eventTeardown: function() {ok(true, 'eventTeardown called');},
-		_eventSetup: function() {ok(true, 'eventSetup called');}
+		_eventTeardown: function() {assert.ok(true, 'eventTeardown called');},
+		_eventSetup: function() {assert.ok(true, 'eventSetup called');}
 	};
 
 	lifecycle(obj);
